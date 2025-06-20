@@ -52,7 +52,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -259,7 +259,13 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Orc-Death_0: 8544846919123988669
+      Orc-Death_1: -401137139762225490
+      Orc-Death_2: 1872452920086712164
+      Orc-Death_3: 5977794959670586378
+      Orc-Death_4: -3050150630142680969
+      Orc-Death_5: 2941728601448590661
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

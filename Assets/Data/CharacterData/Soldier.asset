@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 093275ac3892d43be9098916d19e3225, type: 3}
+  m_Name: Soldier
+  m_EditorClassIdentifier: 
+  id: 0
+  displayName: "\uBCD1\uC0AC"
+  icon: {fileID: -7978735674136817684, guid: 45f4ad4ed367247709ea4f014e9cbaa8, type: 3}
+  prefab: {fileID: 2404109279144821187, guid: 337f710f5fe18416787d441cf2e9abd5, type: 3}
+  baseHp: 50
+  hpGrowth: 1
+  baseAtk: 5
+  atkGrowth: 1
+  unlockCost: 0
+  skills: []

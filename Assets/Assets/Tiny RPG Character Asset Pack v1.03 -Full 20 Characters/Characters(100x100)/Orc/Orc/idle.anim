@@ -21,19 +21,19 @@ AnimationClip:
   - serializedVersion: 2
     curve:
     - time: 0
-      value: {fileID: -7978735674136817684, guid: 45f4ad4ed367247709ea4f014e9cbaa8, type: 3}
+      value: {fileID: 5120410236738981136, guid: fb33626b5f42147348581369f93f363e, type: 3}
     - time: 0.083333336
-      value: {fileID: 8849163925938299382, guid: 45f4ad4ed367247709ea4f014e9cbaa8, type: 3}
+      value: {fileID: 1133040411461804861, guid: fb33626b5f42147348581369f93f363e, type: 3}
     - time: 0.16666667
-      value: {fileID: -3697785639171859907, guid: 45f4ad4ed367247709ea4f014e9cbaa8, type: 3}
+      value: {fileID: -5096723200824463030, guid: fb33626b5f42147348581369f93f363e, type: 3}
     - time: 0.25
-      value: {fileID: -1830650023417107544, guid: 45f4ad4ed367247709ea4f014e9cbaa8, type: 3}
+      value: {fileID: -2225174341924067898, guid: fb33626b5f42147348581369f93f363e, type: 3}
     - time: 0.33333334
-      value: {fileID: 5344081390441601760, guid: 45f4ad4ed367247709ea4f014e9cbaa8, type: 3}
+      value: {fileID: -8233152129326895834, guid: fb33626b5f42147348581369f93f363e, type: 3}
     - time: 0.41666666
-      value: {fileID: 1830586431241935133, guid: 45f4ad4ed367247709ea4f014e9cbaa8, type: 3}
+      value: {fileID: -4010699835880829198, guid: fb33626b5f42147348581369f93f363e, type: 3}
     attribute: m_Sprite
-    path: Sprite
+    path: Orc
     classID: 212
     script: {fileID: 0}
     flags: 2
@@ -45,7 +45,7 @@ AnimationClip:
   m_ClipBindingConstant:
     genericBindings:
     - serializedVersion: 2
-      path: 850496168
+      path: 1295333497
       attribute: 0
       script: {fileID: 0}
       typeID: 212
@@ -54,12 +54,12 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     pptrCurveMapping:
-    - {fileID: -7978735674136817684, guid: 45f4ad4ed367247709ea4f014e9cbaa8, type: 3}
-    - {fileID: 8849163925938299382, guid: 45f4ad4ed367247709ea4f014e9cbaa8, type: 3}
-    - {fileID: -3697785639171859907, guid: 45f4ad4ed367247709ea4f014e9cbaa8, type: 3}
-    - {fileID: -1830650023417107544, guid: 45f4ad4ed367247709ea4f014e9cbaa8, type: 3}
-    - {fileID: 5344081390441601760, guid: 45f4ad4ed367247709ea4f014e9cbaa8, type: 3}
-    - {fileID: 1830586431241935133, guid: 45f4ad4ed367247709ea4f014e9cbaa8, type: 3}
+    - {fileID: 5120410236738981136, guid: fb33626b5f42147348581369f93f363e, type: 3}
+    - {fileID: 1133040411461804861, guid: fb33626b5f42147348581369f93f363e, type: 3}
+    - {fileID: -5096723200824463030, guid: fb33626b5f42147348581369f93f363e, type: 3}
+    - {fileID: -2225174341924067898, guid: fb33626b5f42147348581369f93f363e, type: 3}
+    - {fileID: -8233152129326895834, guid: fb33626b5f42147348581369f93f363e, type: 3}
+    - {fileID: -4010699835880829198, guid: fb33626b5f42147348581369f93f363e, type: 3}
   m_AnimationClipSettings:
     serializedVersion: 2
     m_AdditiveReferencePoseClip: {fileID: 0}
@@ -84,4 +84,11 @@ AnimationClip:
   m_EulerEditorCurves: []
   m_HasGenericRootTransform: 0
   m_HasMotionFloatCurves: 0
-  m_Events: []
+  m_Events:
+  - time: 0.25
+    functionName: DealDamage
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
