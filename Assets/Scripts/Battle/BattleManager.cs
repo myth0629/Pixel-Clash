@@ -13,6 +13,9 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private Transform playerSpawnRoot;
     [SerializeField] private Transform enemySpawnRoot;
     [SerializeField] private GameObject enemyPrefab;
+    
+    [SerializeField] private HealthBarUI healthBarPrefab; // 인스펙터에 프리팹 연결
+    [SerializeField] private Transform uiRoot;            // 월드 스페이스 Canvas 루트
 
     // ---------------- Test Mode ----------------
     [Header("Test Mode (Play‑Mode Quick Test)")]
@@ -79,6 +82,10 @@ public class BattleManager : MonoBehaviour
             var go = Instantiate(cd.prefab, playerSpawnRoot);
             var pc = go.AddComponent<PlayerCharacter>();
             pc.Setup(cd, level);
+            
+            // ▼ HP 바 생성 & 초기화
+            var bar = Instantiate(healthBarPrefab, uiRoot);
+            bar.Init(pc);
 
             pc.OnDeath += OnPlayerDead;
             _players.Add(pc);
@@ -96,6 +103,10 @@ public class BattleManager : MonoBehaviour
             int hp  = 30 + 10 * count;
             int atk = 5 +  3 * count;
             enemy.Setup(hp, atk);
+            
+            // ▼ HP 바 생성 & 초기화
+            var bar = Instantiate(healthBarPrefab, uiRoot);
+            bar.Init(enemy);
 
             enemy.OnDeath += OnEnemyDead;
             _enemies.Add(enemy);

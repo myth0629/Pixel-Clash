@@ -16,6 +16,12 @@ public abstract class CharacterBase : MonoBehaviour
 
     // 사망 콜백 (BattleManager에 알림)
     public event Action<CharacterBase> OnDeath;
+    
+    /// HP 변경 시 브로드캐스트 (현재 HP, 최대 HP)
+    public event Action<int, int> OnHealthChanged;
+
+    public int CurrentHp => currentHp;
+    public int MaxHp     => maxHp;
 
     // ---------- 유니티 라이프사이클 ----------
     protected virtual void Update()
@@ -38,11 +44,13 @@ public abstract class CharacterBase : MonoBehaviour
         currentHp  = hp;
         this.atk   = atk;
         attackInterval = interval;
+        OnHealthChanged?.Invoke(currentHp, maxHp);
     }
 
     public virtual void TakeDamage(int dmg)
     {
         currentHp = Mathf.Max(0, currentHp - dmg);
+        OnHealthChanged?.Invoke(currentHp, maxHp);
         // TODO: 피격 이펙트 호출
         if (currentHp == 0)
             Die();
