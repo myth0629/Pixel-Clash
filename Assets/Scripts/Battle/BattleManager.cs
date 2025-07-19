@@ -12,6 +12,8 @@ public class BattleManager : MonoBehaviour
     [Header("설정")]
     [SerializeField] private Transform playerSpawnRoot;
     [SerializeField] private Transform enemySpawnRoot;
+    [Tooltip("파티 캐릭터가 2명 이상일 때 좌우로 배치할 간격")]
+    [SerializeField] private float playerCharacterSpacing = 2f;
     [SerializeField] private GameObject enemyPrefab;
     
     [SerializeField] private HealthBarUI healthBarPrefab; // 인스펙터에 프리팹 연결
@@ -77,9 +79,16 @@ public class BattleManager : MonoBehaviour
 
     private void SpawnPlayers(List<(CharacterData, int)> party)
     {
-        foreach (var (cd, level) in party)
+        int   partyCount = party.Count;
+        float startX     = (partyCount > 1) ? -(partyCount - 1) * playerCharacterSpacing / 2f : 0f;
+
+        for (int i = 0; i < partyCount; i++)
         {
+            var (cd, level) = party[i];
             var go = Instantiate(cd.prefab, playerSpawnRoot);
+            
+            go.transform.localPosition = new Vector3(startX + i * playerCharacterSpacing, 0, 0);
+
             var pc = go.AddComponent<PlayerCharacter>();
             pc.Setup(cd, level);
             

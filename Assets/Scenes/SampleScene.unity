@@ -150,12 +150,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerSpawnRoot: {fileID: 1880434958}
   enemySpawnRoot: {fileID: 996561802}
+  playerCharacterSpacing: 1
   enemyPrefab: {fileID: 7830232458973669189, guid: dd19716893af5492b964bb40c2e3dbc8, type: 3}
   healthBarPrefab: {fileID: 4526279226287500771, guid: c6887d393265346ca962273b5461d898, type: 3}
   uiRoot: {fileID: 1013079399}
   autoStartOnPlay: 1
   testPartyCharacters:
   - {fileID: 11400000, guid: 2a0cb2f1798914edd905d93e3aaf3391, type: 2}
+  - {fileID: 11400000, guid: 87c861afc861c44db8cd204d1156c89a, type: 2}
   testPartyLevels: 
   testWaveEnemyCount: 1
 --- !u!4 &318403653
