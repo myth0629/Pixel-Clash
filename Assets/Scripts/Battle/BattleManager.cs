@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// 전투 씬 매니저 (간략 버전):
 ///  - 파티·적 리스트 관리
@@ -14,10 +15,13 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private Transform enemySpawnRoot;
     [Tooltip("파티 캐릭터가 2명 이상일 때 좌우로 배치할 간격")]
     [SerializeField] private float playerCharacterSpacing = 2f;
+    [Tooltip("적 몬스터가 2명 이상일 때 좌우로 배치할 간격")]
+    [SerializeField] private float enemyCharacterSpacing = 2f;
     [SerializeField] private GameObject enemyPrefab;
-    
+
     [SerializeField] private HealthBarUI healthBarPrefab; // 인스펙터에 프리팹 연결
     [SerializeField] private Transform uiRoot;            // 월드 스페이스 Canvas 루트
+    [SerializeField] private GameObject GameOverPanel;
 
     // ---------------- Test Mode ----------------
     [Header("Test Mode (Play‑Mode Quick Test)")]
@@ -79,19 +83,19 @@ public class BattleManager : MonoBehaviour
 
     private void SpawnPlayers(List<(CharacterData, int)> party)
     {
-        int   partyCount = party.Count;
-        float startX     = (partyCount > 1) ? -(partyCount - 1) * playerCharacterSpacing / 2f : 0f;
+        int partyCount = party.Count;
+        float startX = (partyCount > 1) ? -(partyCount - 1) * playerCharacterSpacing / 2f : 0f;
 
         for (int i = 0; i < partyCount; i++)
         {
             var (cd, level) = party[i];
             var go = Instantiate(cd.prefab, playerSpawnRoot);
-            
+
             go.transform.localPosition = new Vector3(startX + i * playerCharacterSpacing, 0, 0);
 
             var pc = go.AddComponent<PlayerCharacter>();
             pc.Setup(cd, level);
-            
+
             // ▼ HP 바 생성 & 초기화
             var bar = Instantiate(healthBarPrefab, uiRoot);
             bar.Init(pc);
@@ -103,16 +107,21 @@ public class BattleManager : MonoBehaviour
 
     private void SpawnWave(int count)
     {
+        float startX = (count > 1) ? -(count - 1) * enemyCharacterSpacing / 2f : 0f;
+
         for (int i = 0; i < count; i++)
         {
             var go = Instantiate(enemyPrefab, enemySpawnRoot);
+
+            go.transform.localPosition = new Vector3(startX + i * enemyCharacterSpacing, 0, 0);
+
             var enemy = go.GetComponent<Enemy>();
 
             // 간단 스케일링 예시
-            int hp  = 30 + 10 * count;
-            int atk = 5 +  3 * count;
+            int hp = 30 + 10 * count;
+            int atk = 5 + 3 * count;
             enemy.Setup(hp, atk);
-            
+
             // ▼ HP 바 생성 & 초기화
             var bar = Instantiate(healthBarPrefab, uiRoot);
             bar.Init(enemy);
@@ -127,7 +136,7 @@ public class BattleManager : MonoBehaviour
     public Enemy GetNearestEnemy(Vector3 pos)
     {
         Enemy closest = null;
-        float minSqr  = float.MaxValue;
+        float minSqr = float.MaxValue;
 
         foreach (var e in _enemies)
         {
@@ -164,8 +173,14 @@ public class BattleManager : MonoBehaviour
         if (_players.Count == 0)
         {
             IsBattleRunning = false;
+            GameOverPanel.SetActive(true);
             Debug.Log("패배! 파티 전멸");
         }
     }
     #endregion
+
+    public void Restart()
+    {
+        SceneManager.LoadScene("BattleScene");
+    }
 }
