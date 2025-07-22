@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14f5991547650437cb354c991f78e9dc, type: 3}
+  m_Name: Orc
+  m_EditorClassIdentifier: 
+  monsterName: "\uC624\uD06C"
+  description: "\uAE30\uBCF8 \uBAAC\uC2A4\uD130"
+  icon: {fileID: 0}
+  prefab: {fileID: 7830232458973669189, guid: dd19716893af5492b964bb40c2e3dbc8, type: 3}
+  baseHp: 30
+  baseAtk: 5
+  attackInterval: 1.2
+  hpPerWave: 10
+  atkPerWave: 3
+  maxScalingWave: 10
+  expReward: 15
+  goldReward: 10
+  targetPriority: 0

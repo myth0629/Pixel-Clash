@@ -5,27 +5,38 @@ using UnityEngine;
 public class Enemy : CharacterBase
 {
     private PlayerCharacter target;
-    Animator animator;
+    private Animator animator;
+    private MonsterData monsterData;
+    private int currentWave;
 
     private void Start()
     {
         animator = GetComponentInChildren<Animator>();
     }
 
-    // stage, wave scaling용 필드
+    // MonsterData를 사용한 셋업
+    public void Setup(MonsterData data, int waveNumber)
+    {
+        monsterData = data;
+        currentWave = waveNumber;
+        
+        (int hp, int atk) = data.GetScaledStats(waveNumber);
+        InitStats(hp, atk, data.attackInterval);
+    }
+
+    // 기존 호환성을 위한 오버로드
     public void Setup(int baseHp, int baseAtk, float interval = 1.2f)
     {
         InitStats(baseHp, baseAtk, interval);
     }
 
-    /// <summary>자동 공격: 랜덤 살아있는 플레이어 타깃</summary>
+    /// <summary>자동 공격: MonsterData 설정에 따른 타깃 선택</summary>
     protected override void TryAttack()
     {
         target = BattleManager.Instance.GetRandomAlivePlayer();
         if (target == null) return;
 
-        target.TakeDamage(atk);
-        // TODO: 공격 애니·이펙트
+        // 애니메이션 트리거만 실행 (실제 데미지는 DealDamage에서)
         animator.SetTrigger("Attack");
     }
     
@@ -42,5 +53,28 @@ public class Enemy : CharacterBase
     {
         base.TakeDamage(dmg);
         Debug.Log($"Enemy HP: {currentHp}/{maxHp}");
+        
+        // 사망 시 보상 지급
+        if (currentHp <= 0 && monsterData != null)
+        {
+            (int exp, int gold) = monsterData.GetScaledRewards(currentWave);
+            
+            // 실제 보상 지급
+            if (GameDataManager.Instance != null)
+            {
+                GameDataManager.Instance.AddGold(gold);
+                GameDataManager.Instance.AddExp(exp);
+                
+                // UI 이펙트 표시
+                GameDataUI.ShowGoldReward(gold);
+            }
+            
+            Debug.Log($"Monster defeated! Gained {exp} EXP, {gold} Gold");
+        }
+    }
+
+    public MonsterData GetMonsterData()
+    {
+        return monsterData;
     }
 }

@@ -17,7 +17,8 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private float playerCharacterSpacing = 2f;
     [Tooltip("적 몬스터가 2명 이상일 때 좌우로 배치할 간격")]
     [SerializeField] private float enemyCharacterSpacing = 2f;
-    [SerializeField] private GameObject enemyPrefab;
+    [SerializeField] private GameObject enemyPrefab; // 호환성을 위해 유지
+    [SerializeField] private MonsterData[] monsterDataList; // 새로운 몬스터 데이터 배열
 
     [SerializeField] private HealthBarUI healthBarPrefab; // 인스펙터에 프리팹 연결
     [SerializeField] private Transform uiRoot;            // 월드 스페이스 Canvas 루트
@@ -49,6 +50,10 @@ public class BattleManager : MonoBehaviour
 
     private void Start()
     {
+        // StageManager가 있으면 StageManager가 전투를 관리하도록 함
+        if (StageManager.Instance != null) return;
+        
+        // StageManager가 없을 때만 기존 로직 실행
         if (!autoStartOnPlay) return;
 
         var partyInfo = new List<(CharacterData, int)>();
@@ -77,21 +82,51 @@ public class BattleManager : MonoBehaviour
     {
         IsBattleRunning = true;
 
+        // 기존 전투 정리
+        ClearBattle();
+
         SpawnPlayers(partyInfo);
         SpawnWave(waveEnemyCount);
     }
 
+    /// <summary>기존 전투 정리</summary>
+    private void ClearBattle()
+    {
+        // 기존 플레이어들 제거
+        foreach (var player in _players)
+        {
+            if (player != null)
+                Destroy(player.gameObject);
+        }
+        _players.Clear();
+
+        // 기존 적들 제거
+        foreach (var enemy in _enemies)
+        {
+            if (enemy != null)
+                Destroy(enemy.gameObject);
+        }
+        _enemies.Clear();
+
+        // 게임오버 패널 비활성화
+        if (GameOverPanel != null)
+            GameOverPanel.SetActive(false);
+    }
+
     private void SpawnPlayers(List<(CharacterData, int)> party)
     {
-        int partyCount = party.Count;
-        float startX = (partyCount > 1) ? -(partyCount - 1) * playerCharacterSpacing / 2f : 0f;
+        int partyCount = Mathf.Min(party.Count, 2); // 최대 2명까지만
 
         for (int i = 0; i < partyCount; i++)
         {
             var (cd, level) = party[i];
             var go = Instantiate(cd.prefab, playerSpawnRoot);
 
-            go.transform.localPosition = new Vector3(startX + i * playerCharacterSpacing, 0, 0);
+            // 전방/후방 배치 로직 (전방1, 후방1)
+            bool isFrontRow = i == 0; // 첫 번째는 전방, 두 번째는 후방
+            float xOffset = isFrontRow ? 0f : -playerCharacterSpacing; // 후방은 우측으로 spacing만큼 이동
+            
+            go.transform.localPosition = new Vector3(xOffset, 0, 0);
 
             var pc = go.AddComponent<PlayerCharacter>();
             pc.Setup(cd, level);
@@ -107,20 +142,44 @@ public class BattleManager : MonoBehaviour
 
     private void SpawnWave(int count)
     {
-        float startX = (count > 1) ? -(count - 1) * enemyCharacterSpacing / 2f : 0f;
+        int enemyCount = Mathf.Min(count, 2); // 최대 2명까지만
 
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < enemyCount; i++)
         {
-            var go = Instantiate(enemyPrefab, enemySpawnRoot);
+            // MonsterData가 있으면 사용, 없으면 기본 enemyPrefab 사용
+            GameObject prefabToSpawn = enemyPrefab;
+            MonsterData dataToUse = null;
+            
+            if (monsterDataList != null && monsterDataList.Length > 0)
+            {
+                // 랜덤하게 몬스터 데이터 선택
+                dataToUse = monsterDataList[UnityEngine.Random.Range(0, monsterDataList.Length)];
+                if (dataToUse.prefab != null)
+                    prefabToSpawn = dataToUse.prefab;
+            }
 
-            go.transform.localPosition = new Vector3(startX + i * enemyCharacterSpacing, 0, 0);
+            var go = Instantiate(prefabToSpawn, enemySpawnRoot);
+
+            // 전방/후방 배치 로직 (전방1, 후방1)
+            bool isFrontRow = i == 0; // 첫 번째는 전방, 두 번째는 후방
+            float xOffset = isFrontRow ? 0f : enemyCharacterSpacing; // 후방은 좌측으로 spacing만큼 이동
+            
+            go.transform.localPosition = new Vector3(xOffset, 0, 0);
 
             var enemy = go.GetComponent<Enemy>();
 
-            // 간단 스케일링 예시
-            int hp = 30 + 10 * count;
-            int atk = 5 + 3 * count;
-            enemy.Setup(hp, atk);
+            // MonsterData가 있으면 사용, 없으면 기존 방식
+            if (dataToUse != null)
+            {
+                enemy.Setup(dataToUse, 1); // 웨이브 번호는 추후 구현
+            }
+            else
+            {
+                // 기존 방식 (호환성)
+                int hp = 30 + 10 * count;
+                int atk = 5 + 3 * count;
+                enemy.Setup(hp, atk);
+            }
 
             // ▼ HP 바 생성 & 초기화
             var bar = Instantiate(healthBarPrefab, uiRoot);
@@ -137,13 +196,35 @@ public class BattleManager : MonoBehaviour
     {
         Enemy closest = null;
         float minSqr = float.MaxValue;
+        bool foundFrontRow = false;
 
+        // 1차: 전방 적들만 체크
         foreach (var e in _enemies)
         {
             if (e == null) continue;
-            float d = (e.transform.position - pos).sqrMagnitude;
-            if (d < minSqr) { minSqr = d; closest = e; }
+            
+            // 전방 판정 (x좌표가 0에 가까운 적들)
+            bool isFrontRowEnemy = Mathf.Abs(e.transform.localPosition.x) < 0.1f;
+            
+            if (isFrontRowEnemy)
+            {
+                foundFrontRow = true;
+                float d = (e.transform.position - pos).sqrMagnitude;
+                if (d < minSqr) { minSqr = d; closest = e; }
+            }
         }
+
+        // 전방에 적이 없으면 후방 적들 중에서 선택
+        if (!foundFrontRow)
+        {
+            foreach (var e in _enemies)
+            {
+                if (e == null) continue;
+                float d = (e.transform.position - pos).sqrMagnitude;
+                if (d < minSqr) { minSqr = d; closest = e; }
+            }
+        }
+
         return closest;
     }
 
@@ -151,6 +232,15 @@ public class BattleManager : MonoBehaviour
     {
         var alive = _players.FindAll(p => p != null);
         if (alive.Count == 0) return null;
+        
+        // 전방 플레이어 우선 선택
+        var frontRowPlayers = alive.FindAll(p => Mathf.Abs(p.transform.localPosition.x) < 0.1f);
+        if (frontRowPlayers.Count > 0)
+        {
+            return frontRowPlayers[Random.Range(0, frontRowPlayers.Count)];
+        }
+        
+        // 전방에 없으면 후방에서 선택
         return alive[Random.Range(0, alive.Count)];
     }
     #endregion
@@ -164,6 +254,12 @@ public class BattleManager : MonoBehaviour
             // 웨이브 종료 → 보상 지급
             IsBattleRunning = false;
             Debug.Log("Wave Clear! 보상 지급 & 다음 스테이지 로딩");
+            
+            // StageManager에 라운드 완료 알림
+            if (StageManager.Instance != null)
+            {
+                StageManager.Instance.CompleteRound();
+            }
         }
     }
 
@@ -175,6 +271,12 @@ public class BattleManager : MonoBehaviour
             IsBattleRunning = false;
             GameOverPanel.SetActive(true);
             Debug.Log("패배! 파티 전멸");
+            
+            // GameUIManager에게 게임 오버 알림
+            if (GameUIManager.Instance != null)
+            {
+                GameUIManager.Instance.OnGameOver();
+            }
         }
     }
     #endregion
@@ -182,5 +284,24 @@ public class BattleManager : MonoBehaviour
     public void Restart()
     {
         SceneManager.LoadScene("BattleScene");
+    }
+
+    /// <summary>테스트 파티 정보 반환 (StageManager용)</summary>
+    public System.Collections.Generic.List<(CharacterData, int)> GetTestPartyInfo()
+    {
+        var partyInfo = new System.Collections.Generic.List<(CharacterData, int)>();
+        
+        for (int i = 0; i < testPartyCharacters.Count; i++)
+        {
+            var cd = testPartyCharacters[i];
+            if (cd == null) continue;
+
+            int level = (i < testPartyLevels.Count) ? testPartyLevels[i] : 1;
+            level = Mathf.Max(1, level); // 최소 1레벨 보장
+
+            partyInfo.Add((cd, level));
+        }
+        
+        return partyInfo;
     }
 }
