@@ -42,6 +42,7 @@ public class BattleManager : MonoBehaviour
 
     private readonly List<PlayerCharacter> _players = new();
     private readonly List<Enemy> _enemies = new();
+    private readonly List<HealthBarUI> _healthBars = new(); // 체력바 추적용 리스트
 
     private void Awake()
     {
@@ -92,6 +93,14 @@ public class BattleManager : MonoBehaviour
     /// <summary>기존 전투 정리</summary>
     private void ClearBattle()
     {
+        // 기존 체력바들 제거
+        foreach (var healthBar in _healthBars)
+        {
+            if (healthBar != null)
+                Destroy(healthBar.gameObject);
+        }
+        _healthBars.Clear();
+
         // 기존 플레이어들 제거
         foreach (var player in _players)
         {
@@ -134,6 +143,7 @@ public class BattleManager : MonoBehaviour
             // ▼ HP 바 생성 & 초기화
             var bar = Instantiate(healthBarPrefab, uiRoot);
             bar.Init(pc);
+            _healthBars.Add(bar); // 체력바를 리스트에 추가
 
             pc.OnDeath += OnPlayerDead;
             _players.Add(pc);
@@ -184,6 +194,7 @@ public class BattleManager : MonoBehaviour
             // ▼ HP 바 생성 & 초기화
             var bar = Instantiate(healthBarPrefab, uiRoot);
             bar.Init(enemy);
+            _healthBars.Add(bar); // 체력바를 리스트에 추가
 
             enemy.OnDeath += OnEnemyDead;
             _enemies.Add(enemy);

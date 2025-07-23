@@ -744,7 +744,7 @@ MonoBehaviour:
   settingsButton: {fileID: 640119083}
   exitButton: {fileID: 0}
   preparePanel: {fileID: 190777050}
-  battleStartButton: {fileID: 210023930}
+  battleStartButton: {fileID: 559453914}
   backToTitleButton: {fileID: 0}
   prepareTitleText: {fileID: 0}
   instructionText: {fileID: 0}
