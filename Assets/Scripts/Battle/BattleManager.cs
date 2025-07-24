@@ -90,6 +90,25 @@ public class BattleManager : MonoBehaviour
         SpawnWave(waveEnemyCount);
     }
 
+    /// <summary>GameUIManager에서 설정한 파티로 전투 시작</summary>
+    public void StartBattleWithUIParty(int waveEnemyCount = 3)
+    {
+        List<(CharacterData, int)> partyInfo;
+        
+        // GameUIManager에서 파티 정보 가져오기
+        if (GameUIManager.Instance != null)
+        {
+            partyInfo = GameUIManager.Instance.GetCurrentPartyInfo();
+        }
+        else
+        {
+            // 백업: 기존 테스트 파티 사용
+            partyInfo = GetTestPartyInfo();
+        }
+        
+        StartBattle(partyInfo, waveEnemyCount);
+    }
+
     /// <summary>기존 전투 정리</summary>
     private void ClearBattle()
     {

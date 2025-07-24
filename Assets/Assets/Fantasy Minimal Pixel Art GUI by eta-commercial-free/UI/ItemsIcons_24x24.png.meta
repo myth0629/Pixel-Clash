@@ -88,7 +88,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -559,7 +559,25 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      ItemsIcons_24x24_0: -2923825397701648965
+      ItemsIcons_24x24_1: -5075842222863922406
+      ItemsIcons_24x24_10: -279376337184212994
+      ItemsIcons_24x24_11: 5874175210041207872
+      ItemsIcons_24x24_12: 4991956620283422560
+      ItemsIcons_24x24_13: -2596254095547808373
+      ItemsIcons_24x24_14: 8789924985746372519
+      ItemsIcons_24x24_15: 7135621267109917034
+      ItemsIcons_24x24_16: 5826433395528340879
+      ItemsIcons_24x24_17: -4978600595729522570
+      ItemsIcons_24x24_2: 3975856693503291660
+      ItemsIcons_24x24_3: 7489949008803148170
+      ItemsIcons_24x24_4: 7344064870543569694
+      ItemsIcons_24x24_5: 140095862730968029
+      ItemsIcons_24x24_6: -2140453925309197124
+      ItemsIcons_24x24_7: 2111246636946970000
+      ItemsIcons_24x24_8: 5169670704343372925
+      ItemsIcons_24x24_9: -7144568967892866918
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

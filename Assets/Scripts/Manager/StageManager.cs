@@ -86,8 +86,8 @@ public class StageManager : MonoBehaviour
         if (BattleManager.Instance != null)
         {
             int enemyCount = GetEnemyCountForCurrentRound();
-            // 기존 파티 정보 사용하거나 테스트 파티 사용
-            BattleManager.Instance.StartBattle(GetTestParty(), enemyCount);
+            // GameUIManager에서 설정한 파티 사용
+            BattleManager.Instance.StartBattleWithUIParty(enemyCount);
         }
     }
 
