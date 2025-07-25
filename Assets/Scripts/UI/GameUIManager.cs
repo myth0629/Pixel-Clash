@@ -427,14 +427,20 @@ public class GameUIManager : MonoBehaviour
             button.onClick.AddListener(() => OnCharacterSelected(character));
         }
 
-        // 버튼 UI 업데이트
-        var nameText = buttonObj.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+        // 이름으로 정확히 찾기
+        var nameText = buttonObj.transform.Find("IconContainer/NameText")?.GetComponent<TMPro.TextMeshProUGUI>();
         if (nameText != null)
             nameText.text = character.name;
 
-        var iconImage = buttonObj.GetComponentInChildren<UnityEngine.UI.Image>();
+        var iconImage = buttonObj.transform.Find("IconContainer/Icon")?.GetComponent<UnityEngine.UI.Image>();
         if (iconImage != null && character.icon != null)
+        {
             iconImage.sprite = character.icon;
+            
+            // 이미지 비율 유지 설정
+            iconImage.preserveAspect = true;
+            iconImage.type = Image.Type.Simple;
+        }
     }
 
     /// <summary>빈 슬롯 버튼 생성 (캐릭터 제거용)</summary>
@@ -448,7 +454,8 @@ public class GameUIManager : MonoBehaviour
             button.onClick.AddListener(() => OnCharacterSelected(null));
         }
 
-        var nameText = buttonObj.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+        // 이름으로 정확히 찾기
+        var nameText = buttonObj.transform.Find("IconContainer/NameText")?.GetComponent<TMPro.TextMeshProUGUI>();
         if (nameText != null)
             nameText.text = "빈 슬롯";
     }
