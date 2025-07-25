@@ -39,7 +39,6 @@ public class GameUIManager : MonoBehaviour
     [SerializeField] private Transform availableCharactersContainer; // 선택 가능한 캐릭터 리스트
     [SerializeField] private GameObject characterSelectButtonPrefab; // 캐릭터 선택 버튼 프리팹
     [SerializeField] private Button closeSelectionButton; // 선택창 닫기 버튼
-    [SerializeField] private Button applySelectionButton; // 선택 적용 버튼
     [SerializeField] private CharacterData[] availableCharacters; // 선택 가능한 캐릭터들
 
     [Header("게임 UI")]
@@ -62,7 +61,6 @@ public class GameUIManager : MonoBehaviour
     // 파티 관리 변수들
     private int selectedSlotIndex = -1; // 현재 선택 중인 파티 슬롯 (-1이면 선택 안됨)
     private List<CharacterData> currentParty = new List<CharacterData>(); // 현재 파티 구성
-    private CharacterData tempSelectedCharacter = null; // 임시로 선택된 캐릭터 (적용 전)
 
     private void Awake()
     {
@@ -107,9 +105,6 @@ public class GameUIManager : MonoBehaviour
             
         if (closeSelectionButton != null)
             closeSelectionButton.onClick.AddListener(OnCloseSelectionClicked);
-            
-        if (applySelectionButton != null)
-            applySelectionButton.onClick.AddListener(OnApplySelectionClicked);
             
         // 파티 슬롯 버튼 설정
         if (partySlot1Button != null)
@@ -384,7 +379,6 @@ public class GameUIManager : MonoBehaviour
         if (characterSelectionPanel != null)
         {
             characterSelectionPanel.SetActive(true);
-            tempSelectedCharacter = null; // 임시 선택 초기화
             UpdateCharacterSelectionList();
         }
     }
@@ -396,7 +390,6 @@ public class GameUIManager : MonoBehaviour
             characterSelectionPanel.SetActive(false);
             
         selectedSlotIndex = -1;
-        tempSelectedCharacter = null; // 임시 선택 초기화
     }
 
     /// <summary>선택 가능한 캐릭터 리스트 업데이트</summary>
@@ -431,7 +424,7 @@ public class GameUIManager : MonoBehaviour
         
         if (button != null)
         {
-            button.onClick.AddListener(() => OnCharacterClicked(character));
+            button.onClick.AddListener(() => OnCharacterSelected(character));
         }
 
         // 버튼 UI 업데이트
@@ -452,7 +445,7 @@ public class GameUIManager : MonoBehaviour
         
         if (button != null)
         {
-            button.onClick.AddListener(() => OnCharacterClicked(null));
+            button.onClick.AddListener(() => OnCharacterSelected(null));
         }
 
         var nameText = buttonObj.GetComponentInChildren<TMPro.TextMeshProUGUI>();
@@ -460,28 +453,16 @@ public class GameUIManager : MonoBehaviour
             nameText.text = "빈 슬롯";
     }
 
-    /// <summary>캐릭터 버튼 클릭 (선택만 함, 적용하지 않음)</summary>
-    private void OnCharacterClicked(CharacterData clickedCharacter)
+    /// <summary>캐릭터 선택 완료</summary>
+    private void OnCharacterSelected(CharacterData selectedCharacter)
     {
-        tempSelectedCharacter = clickedCharacter;
-        Debug.Log($"캐릭터 선택됨: {(clickedCharacter?.name ?? "빈 슬롯")}");
-        
-        // 시각적 피드백을 위해 선택된 버튼 하이라이트 등을 추가할 수 있음
-        UpdateCharacterButtonHighlight();
-    }
-
-    /// <summary>선택된 캐릭터 버튼 하이라이트 업데이트</summary>
-    private void UpdateCharacterButtonHighlight()
-    {
-        // 모든 버튼에서 하이라이트 제거하고 선택된 것만 하이라이트
-        // 현재는 로그만 출력, 나중에 시각적 효과 추가 가능
-        if (tempSelectedCharacter != null)
+        if (selectedSlotIndex >= 0 && selectedSlotIndex < currentParty.Count)
         {
-            Debug.Log($"선택 하이라이트: {tempSelectedCharacter.name}");
-        }
-        else
-        {
-            Debug.Log("선택 하이라이트: 빈 슬롯");
+            currentParty[selectedSlotIndex] = selectedCharacter;
+            UpdatePartyInfo(); // UI 업데이트
+            HideCharacterSelection();
+            
+            Debug.Log($"슬롯 {selectedSlotIndex}에 {(selectedCharacter?.name ?? "빈 슬롯")} 배치");
         }
     }
 
@@ -489,23 +470,6 @@ public class GameUIManager : MonoBehaviour
     private void OnCloseSelectionClicked()
     {
         HideCharacterSelection();
-    }
-
-    /// <summary>선택 적용 버튼 클릭</summary>
-    private void OnApplySelectionClicked()
-    {
-        if (selectedSlotIndex >= 0 && selectedSlotIndex < currentParty.Count)
-        {
-            currentParty[selectedSlotIndex] = tempSelectedCharacter;
-            UpdatePartyInfo(); // UI 업데이트
-            HideCharacterSelection();
-            
-            Debug.Log($"슬롯 {selectedSlotIndex}에 {(tempSelectedCharacter?.name ?? "빈 슬롯")} 적용 완료");
-        }
-        else
-        {
-            Debug.LogWarning("잘못된 슬롯 인덱스입니다.");
-        }
     }
 
     /// <summary>현재 파티 정보 반환 (BattleManager용)</summary>
