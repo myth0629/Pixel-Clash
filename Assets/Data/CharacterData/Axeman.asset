@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 093275ac3892d43be9098916d19e3225, type: 3}
-  m_Name: Archer
+  m_Name: Axeman
   m_EditorClassIdentifier: 
-  id: 1
-  displayName: "\uAD81\uC218"
-  icon: {fileID: 5420657165879536120, guid: 66a58365ff2134ffcbe0eb43c1e4d715, type: 3}
-  prefab: {fileID: 7500578308408402378, guid: 475f09eb735464f7abd52eba0a20125e, type: 3}
-  baseHp: 40
+  id: 2
+  displayName: "\uC911\uAC11\uBCD1"
+  icon: {fileID: -2178845191466743114, guid: d219a07201c9d42a5b95a7602f7e567d, type: 3}
+  prefab: {fileID: 5239671842562876272, guid: 5f0edff580fa94d0885c0238f73c943c, type: 3}
+  baseHp: 60
   hpGrowth: 1
-  baseAtk: 4
+  baseAtk: 6
   atkGrowth: 1
-  unlockCost: 1
+  unlockCost: 0
   skills: []

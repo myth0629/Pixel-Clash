@@ -200,14 +200,46 @@ public class BattleManager : MonoBehaviour
             // MonsterData가 있으면 사용, 없으면 기존 방식
             if (dataToUse != null)
             {
-                enemy.Setup(dataToUse, 1); // 웨이브 번호는 추후 구현
+                // 스테이지 배율 적용
+                if (StageManager.Instance != null)
+                {
+                    var (stageHpMult, stageAtkMult) = StageManager.Instance.GetStageMultipliers();
+                    
+                    // 웨이브 스케일링 먼저 적용 (현재 라운드 사용)
+                    int currentWave = StageManager.Instance.CurrentRound;
+                    (int baseHp, int baseAtk) = dataToUse.GetScaledStats(currentWave);
+                    
+                    // 스테이지 배율 추가 적용
+                    int finalHp = Mathf.RoundToInt(baseHp * stageHpMult);
+                    int finalAtk = Mathf.RoundToInt(baseAtk * stageAtkMult);
+                    
+                    enemy.Setup(finalHp, finalAtk, dataToUse.attackInterval);
+                    
+                    Debug.Log($"Stage {StageManager.Instance.CurrentStage}-{currentWave} Enemy: " +
+                              $"Base({baseHp}/{baseAtk}) → Final({finalHp}/{finalAtk}) " +
+                              $"(Wave: {currentWave}, Stage Multipliers: {stageHpMult:F2}x/{stageAtkMult:F2}x)");
+                }
+                else
+                {
+                    // StageManager가 없으면 기본 웨이브 스케일링만 (웨이브 1로 시작)
+                    enemy.Setup(dataToUse, 1);
+                    Debug.Log($"Wave 1 Enemy (No StageManager): MonsterData scaling only");
+                }
             }
             else
             {
-                // 기존 방식 (호환성)
-                int hp = 30 + 10 * count;
-                int atk = 5 + 3 * count;
-                enemy.Setup(hp, atk);
+                // 기존 방식 (호환성)에도 스테이지 배율 적용
+                int baseHp = 30 + 10 * count;
+                int baseAtk = 5 + 3 * count;
+                
+                if (StageManager.Instance != null)
+                {
+                    var (stageHpMult, stageAtkMult) = StageManager.Instance.GetStageMultipliers();
+                    baseHp = Mathf.RoundToInt(baseHp * stageHpMult);
+                    baseAtk = Mathf.RoundToInt(baseAtk * stageAtkMult);
+                }
+                
+                enemy.Setup(baseHp, baseAtk);
             }
 
             // ▼ HP 바 생성 & 초기화
