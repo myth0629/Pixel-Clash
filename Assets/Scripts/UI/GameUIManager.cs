@@ -254,16 +254,28 @@ public class GameUIManager : MonoBehaviour
                 nameText.text = $"{character.name} Lv.1";
                 
             if (iconImage != null && character.icon != null)
+            {
                 iconImage.sprite = character.icon;
+                // 투명도 복원 (캐릭터가 있으면 불투명)
+                var color = iconImage.color;
+                color.a = 1f;
+                iconImage.color = color;
+            }
         }
         else
         {
             // 빈 슬롯인 경우
             if (nameText != null)
-                nameText.text = slotIndex == 0 ? "전방\n(클릭하여 선택)" : "후방\n(클릭하여 선택)";
+                nameText.text = "클릭하여 선택";
                 
             if (iconImage != null)
-                iconImage.sprite = null; // 기본 이미지 또는 빈 슬롯 이미지
+            {
+                iconImage.sprite = null; // 스프라이트 제거
+                // 투명하게 만들기
+                var color = iconImage.color;
+                color.a = 0f;
+                iconImage.color = color;
+            }
         }
     }
 

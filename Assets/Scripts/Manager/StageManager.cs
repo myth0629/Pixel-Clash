@@ -26,6 +26,8 @@ public class StageManager : MonoBehaviour
     public static event Action<int, int> OnRoundStart; // stage, round
     public static event Action<int> OnStageComplete;
     public static event Action OnGameComplete;
+    public static event Action<int> OnStageTransitionStart; // 스테이지 전환 시작
+    public static event Action<int> OnStageTransitionComplete; // 스테이지 전환 완료
 
     // 프로퍼티
     public int CurrentStage => currentStage;
@@ -44,6 +46,9 @@ public class StageManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+        
+        // BackgroundScroller 완료 이벤트 구독
+        BackgroundScroller.OnScrollComplete += OnBackgroundScrollComplete;
     }
 
     private void Start()
@@ -54,6 +59,14 @@ public class StageManager : MonoBehaviour
             StartGame();
         }
     }
+
+    private void OnDestroy()
+    {
+        // 이벤트 구독 해제
+        BackgroundScroller.OnScrollComplete -= OnBackgroundScrollComplete;
+    }
+
+    private bool isWaitingForScrollComplete = false; // 스크롤 완료 대기 상태
 
     #region ▶ 스테이지 관리 ◀
     /// <summary>스테이지 시작</summary>
@@ -102,9 +115,9 @@ public class StageManager : MonoBehaviour
         }
         else
         {
-            // 다음 라운드로
+            // 다음 라운드로 이동 (스크롤 포함)
             currentRound++;
-            StartCoroutine(StartRoundWithDelay(2f)); // 2초 후 다음 라운드
+            StartCoroutine(MoveToNextRound());
         }
     }
 
@@ -121,9 +134,54 @@ public class StageManager : MonoBehaviour
         StartCoroutine(MoveToNextStage());
     }
 
+    /// <summary>다음 라운드로 이동 (배경 스크롤 포함)</summary>
+    private IEnumerator MoveToNextRound()
+    {
+        Debug.Log($"=== 라운드 전환 시작: {currentStage}-{currentRound} ===");
+        
+        // 1. 라운드 전환 이벤트 발생 (스테이지 전환 이벤트 재사용)
+        Debug.Log($"OnStageTransitionStart 이벤트 발생: {currentStage} (라운드 {currentRound})");
+        OnStageTransitionStart?.Invoke(currentStage);
+        
+        // 2. 스크롤 완료 대기 상태로 설정
+        isWaitingForScrollComplete = true;
+        Debug.Log("배경 스크롤 완료 대기 중... (라운드 전환)");
+        
+        // 3. 스크롤이 완료될 때까지 대기
+        while (isWaitingForScrollComplete)
+        {
+            yield return null; // 한 프레임 대기
+        }
+        
+        // 4. 라운드 전환 완료
+        Debug.Log($"=== 라운드 전환 완료: {currentStage}-{currentRound} 시작 ===");
+        
+        // 5. 다음 라운드 시작
+        StartCoroutine(StartRoundWithDelay(0.5f));
+    }
+
     private IEnumerator MoveToNextStage()
     {
-        yield return new WaitForSeconds(3f); // 3초 대기
+        Debug.Log($"=== 스테이지 전환 시작 ===");
+        Debug.Log($"현재 스테이지: {currentStage} → 다음 스테이지: {currentStage + 1}");
+        
+        // 1. 스테이지 전환 이벤트 발생
+        Debug.Log($"OnStageTransitionStart 이벤트 발생: {currentStage + 1}");
+        OnStageTransitionStart?.Invoke(currentStage + 1);
+        
+        // 2. 스크롤 완료 대기 상태로 설정
+        isWaitingForScrollComplete = true;
+        Debug.Log("배경 스크롤 완료 대기 중...");
+        
+        // 3. 스크롤이 완료될 때까지 대기
+        while (isWaitingForScrollComplete)
+        {
+            yield return null; // 한 프레임 대기
+        }
+        
+        // 4. 스테이지 전환 완료 이벤트
+        Debug.Log($"OnStageTransitionComplete 이벤트 발생: {currentStage + 1}");
+        OnStageTransitionComplete?.Invoke(currentStage + 1);
 
         currentStage++;
         
@@ -141,8 +199,12 @@ public class StageManager : MonoBehaviour
         }
         else
         {
+            // 다음 스테이지 시작
+            Debug.Log($"=== 스테이지 전환 완료: {currentStage}스테이지 시작 ===");
             StartStage(currentStage);
         }
+        
+        // 주의: 스크롤 완료 대기는 while 루프에서 처리됨
     }
     #endregion
 
@@ -201,10 +263,37 @@ public class StageManager : MonoBehaviour
         CompleteRound();
     }
 
-    /// <summary>스테이지 리셋 (디버그용)</summary>
+    /// <summary>수동으로 스테이지 전환 테스트 (디버그용)</summary>
+    [ContextMenu("Test Stage Transition")]
+    public void TestStageTransition()
+    {
+        Debug.Log("=== 수동 스테이지 전환 테스트 ===");
+        StartCoroutine(MoveToNextStage());
+    }
+
+    /// <summary>특정 스테이지로 리셋 (디버그용)</summary>
     public void ResetToStage(int stageNumber)
     {
-        StartStage(stageNumber);
+        currentStage = stageNumber;
+        currentRound = 1;
+        Debug.Log($"스테이지 {stageNumber}로 리셋 완료");
+    }
+    #endregion
+
+    #region ▶ 이벤트 핸들러 ◀
+    /// <summary>배경 스크롤 완료 시 호출</summary>
+    private void OnBackgroundScrollComplete()
+    {
+        Debug.Log("=== 배경 스크롤 완료! ===");
+        
+        if (isWaitingForScrollComplete)
+        {
+            isWaitingForScrollComplete = false;
+            Debug.Log("스크롤 대기 상태 해제 - 다음 단계 진행");
+            
+            // 스크롤 완료 후 처리는 각각의 코루틴에서 담당
+            // MoveToNextRound 또는 MoveToNextStage에서 계속 진행됨
+        }
     }
     #endregion
 }

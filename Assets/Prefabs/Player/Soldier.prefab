@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 126385304568623329}
   - component: {fileID: 6544327869441559317}
   - component: {fileID: 8584210022607253106}
+  - component: {fileID: 1175975390867460466}
   m_Layer: 0
   m_Name: Soldier
   m_TagString: Untagged
@@ -118,6 +119,24 @@ MonoBehaviour:
   attackInterval: 1
   data: {fileID: 0}
   level: 1
+--- !u!114 &1175975390867460466
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2404109279144821187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcb175b05fe7a4c599a62ee4daa3286e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  walkBobSpeed: 2
+  walkBobAmount: 0.1
+  walkSideSpeed: 1.5
+  walkSideAmount: 0.05
+  animator: {fileID: 0}
+  walkStateName: IsWalk
 --- !u!1 &3754752628920953402
 GameObject:
   m_ObjectHideFlags: 0
