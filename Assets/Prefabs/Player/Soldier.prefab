@@ -132,10 +132,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   walkBobSpeed: 2
-  walkBobAmount: 0.1
-  walkSideSpeed: 1.5
-  walkSideAmount: 0.05
-  animator: {fileID: 0}
+  walkBobAmount: 0.2
+  animator: {fileID: 6544327869441559317}
   walkStateName: IsWalk
 --- !u!1 &3754752628920953402
 GameObject:

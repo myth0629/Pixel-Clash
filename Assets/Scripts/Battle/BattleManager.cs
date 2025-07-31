@@ -99,13 +99,29 @@ public class BattleManager : MonoBehaviour
         if (GameUIManager.Instance != null)
         {
             partyInfo = GameUIManager.Instance.GetCurrentPartyInfo();
+            Debug.Log($"GameUIManager 파티 정보: {partyInfo.Count}명");
         }
         else
         {
-            // 백업: 기존 테스트 파티 사용
-            partyInfo = GetTestPartyInfo();
+            partyInfo = new List<(CharacterData, int)>();
+            Debug.LogWarning("GameUIManager.Instance가 null입니다!");
         }
         
+        // 파티가 비어있으면 백업 테스트 파티 사용
+        if (partyInfo.Count == 0)
+        {
+            Debug.LogWarning("파티가 비어있습니다. 테스트 파티로 백업합니다.");
+            partyInfo = GetTestPartyInfo();
+            
+            // 테스트 파티도 비어있으면 기본 캐릭터 생성
+            if (partyInfo.Count == 0)
+            {
+                Debug.LogError("테스트 파티도 비어있습니다! 기본 캐릭터를 생성합니다.");
+                partyInfo = CreateDefaultParty();
+            }
+        }
+        
+        Debug.Log($"최종 파티 정보: {partyInfo.Count}명으로 전투 시작");
         StartBattle(partyInfo, waveEnemyCount);
     }
 
@@ -213,7 +229,11 @@ public class BattleManager : MonoBehaviour
                     int finalHp = Mathf.RoundToInt(baseHp * stageHpMult);
                     int finalAtk = Mathf.RoundToInt(baseAtk * stageAtkMult);
                     
-                    enemy.Setup(finalHp, finalAtk, dataToUse.attackInterval);
+                    // MonsterData와 함께 Setup 호출 (보상 지급을 위해)
+                    enemy.Setup(dataToUse, currentWave);
+                    
+                    // 스케일링된 스탯 재설정
+                    enemy.InitStats(finalHp, finalAtk, dataToUse.attackInterval);
                     
                     Debug.Log($"Stage {StageManager.Instance.CurrentStage}-{currentWave} Enemy: " +
                               $"Base({baseHp}/{baseAtk}) → Final({finalHp}/{finalAtk}) " +
@@ -365,5 +385,39 @@ public class BattleManager : MonoBehaviour
         }
         
         return partyInfo;
+    }
+    
+    /// <summary>기본 파티 생성 (최후의 백업)</summary>
+    private System.Collections.Generic.List<(CharacterData, int)> CreateDefaultParty()
+    {
+        var partyInfo = new System.Collections.Generic.List<(CharacterData, int)>();
+        
+        // testPartyCharacters에서 사용 가능한 캐릭터가 있으면 사용
+        if (testPartyCharacters.Count > 0)
+        {
+            for (int i = 0; i < Mathf.Min(testPartyCharacters.Count, 2); i++)
+            {
+                var cd = testPartyCharacters[i];
+                if (cd != null)
+                {
+                    partyInfo.Add((cd, 1));
+                }
+            }
+        }
+        
+        Debug.Log($"기본 파티 생성: {partyInfo.Count}명");
+        return partyInfo;
+    }
+    
+    /// <summary>현재 스폰된 모든 플레이어 캐릭터 반환</summary>
+    public System.Collections.Generic.List<PlayerCharacter> GetAllPlayers()
+    {
+        return _players;
+    }
+    
+    /// <summary>현재 스폰된 모든 적 캐릭터 반환</summary>
+    public System.Collections.Generic.List<Enemy> GetAllEnemies()
+    {
+        return _enemies;
     }
 }

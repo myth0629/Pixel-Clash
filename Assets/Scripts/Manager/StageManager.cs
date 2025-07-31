@@ -95,6 +95,15 @@ public class StageManager : MonoBehaviour
 
         Debug.Log($"Stage {currentStage}-{currentRound} 시작!");
         
+        // 먼저 캐릭터들을 스폰 (배경 스크롤과 동시에 보이도록)
+        if (BattleManager.Instance != null)
+        {
+            int enemyCount = GetEnemyCountForCurrentRound();
+            // GameUIManager에서 설정한 파티 사용
+            BattleManager.Instance.StartBattleWithUIParty(enemyCount);
+            Debug.Log("캐릭터 스폰 완료 - 배경 스크롤 시작");
+        }
+        
         // 스크롤 대기 상태로 설정
         isWaitingForScrollComplete = true;
         Debug.Log("라운드 시작 - 배경 스크롤 완료 대기 중...");
@@ -108,15 +117,7 @@ public class StageManager : MonoBehaviour
             yield return null; // 한 프레임 대기
         }
         
-        Debug.Log("배경 스크롤 완료 - 전투 시작!");
-
-        // 전투 시작
-        if (BattleManager.Instance != null)
-        {
-            int enemyCount = GetEnemyCountForCurrentRound();
-            // GameUIManager에서 설정한 파티 사용
-            BattleManager.Instance.StartBattleWithUIParty(enemyCount);
-        }
+        Debug.Log("배경 스크롤 완료 - 전투 진행 중!");
     }
 
     /// <summary>라운드 완료</summary>
@@ -171,10 +172,13 @@ public class StageManager : MonoBehaviour
         // 4. 라운드 전환 완료
         Debug.Log($"=== 라운드 전환 완료: {currentStage}-{currentRound} 시작 ===");
         
-        // 5. 다음 라운드 시작 (배경 스크롤은 이미 완료되었으므로 바로 전투 시작)
+        // 5. 다음 라운드 시작 (OnRoundStart 이벤트 발생으로 Round Text 표시)
         Debug.Log($"Stage {currentStage}-{currentRound} 전투 시작!");
+        
+        // OnRoundStart 이벤트 발생 (Round Text 표시를 위해)
+        OnRoundStart?.Invoke(currentStage, currentRound);
 
-        // 전투 시작 (OnRoundStart 이벤트 없이 바로 시작)
+        // 전투 시작
         if (BattleManager.Instance != null)
         {
             int enemyCount = GetEnemyCountForCurrentRound();

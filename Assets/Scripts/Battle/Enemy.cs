@@ -12,6 +12,25 @@ public class Enemy : CharacterBase
     private void Start()
     {
         animator = GetComponentInChildren<Animator>();
+        if (animator == null)
+        {
+            animator = GetComponent<Animator>();
+        }
+        
+        if (animator == null)
+        {
+            Debug.LogWarning($"[{gameObject.name}] Enemy Animator를 찾을 수 없습니다!");
+        }
+        else
+        {
+            Debug.Log($"[{gameObject.name}] Enemy Animator 찾음: {animator.gameObject.name}");
+            
+            // 애니메이터 파라미터 목록 출력
+            foreach (AnimatorControllerParameter param in animator.parameters)
+            {
+                Debug.Log($"[{gameObject.name}] 애니메이터 파라미터: {param.name} ({param.type})");
+            }
+        }
     }
 
     // MonsterData를 사용한 셋업
@@ -55,26 +74,91 @@ public class Enemy : CharacterBase
         Debug.Log($"Enemy HP: {currentHp}/{maxHp}");
         
         // 사망 시 보상 지급
-        if (currentHp <= 0 && monsterData != null)
+        if (currentHp <= 0)
         {
-            (int exp, int gold) = monsterData.GetScaledRewards(currentWave);
+            Debug.Log($"Enemy 사망! monsterData: {monsterData != null}, GameDataManager: {GameDataManager.Instance != null}, currentWave: {currentWave}");
             
-            // 실제 보상 지급
-            if (GameDataManager.Instance != null)
+            if (monsterData != null)
             {
-                GameDataManager.Instance.AddGold(gold);
-                GameDataManager.Instance.AddExp(exp);
+                (int exp, int gold) = monsterData.GetScaledRewards(currentWave);
+                Debug.Log($"계산된 보상: EXP={exp}, Gold={gold}");
                 
-                // UI 이펙트 표시
-                GameDataUI.ShowGoldReward(gold);
+                // 실제 보상 지급
+                if (GameDataManager.Instance != null)
+                {
+                    Debug.Log($"보상 지급 전 - 현재 골드: {GameDataManager.Instance.CurrentGold}, 현재 EXP: {GameDataManager.Instance.CurrentExp}");
+                    
+                    GameDataManager.Instance.AddGold(gold);
+                    GameDataManager.Instance.AddExp(exp);
+                    
+                    Debug.Log($"보상 지급 후 - 현재 골드: {GameDataManager.Instance.CurrentGold}, 현재 EXP: {GameDataManager.Instance.CurrentExp}");
+                    
+                    // UI 이펙트 표시
+                    GameDataUI.ShowGoldReward(gold);
+                }
+                else
+                {
+                    Debug.LogError("GameDataManager.Instance가 null입니다!");
+                }
+                
+                Debug.Log($"Monster defeated! Gained {exp} EXP, {gold} Gold");
             }
-            
-            Debug.Log($"Monster defeated! Gained {exp} EXP, {gold} Gold");
+            else
+            {
+                Debug.LogError("MonsterData가 null입니다! 보상을 지급할 수 없습니다.");
+            }
         }
     }
 
     public MonsterData GetMonsterData()
     {
         return monsterData;
+    }
+    
+    /// <summary>걷기 애니메이션 제어</summary>
+    public void SetWalkingAnimation(bool isWalking)
+    {
+        if (animator != null)
+        {
+            // 파라미터 존재 여부 확인
+            bool hasWalkingParam = false;
+            foreach (AnimatorControllerParameter param in animator.parameters)
+            {
+                if (param.name == "IsWalking" && param.type == AnimatorControllerParameterType.Bool)
+                {
+                    hasWalkingParam = true;
+                    break;
+                }
+            }
+            
+            if (hasWalkingParam)
+            {
+                animator.SetBool("IsWalking", isWalking);
+                Debug.Log($"[{gameObject.name}] 걷기 애니메이션 설정: {isWalking}");
+            }
+            else
+            {
+                Debug.LogWarning($"[{gameObject.name}] Animator에 'IsWalking' bool 파라미터가 없습니다!");
+                
+                // 대안으로 Walk 트리거 사용
+                if (isWalking)
+                {
+                    // Walk 트리거가 있는지 확인
+                    foreach (AnimatorControllerParameter param in animator.parameters)
+                    {
+                        if (param.name == "Walk" && param.type == AnimatorControllerParameterType.Trigger)
+                        {
+                            animator.SetTrigger("Walk");
+                            Debug.Log($"[{gameObject.name}] Walk 트리거 실행");
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            Debug.LogError($"[{gameObject.name}] Animator가 null입니다!");
+        }
     }
 }

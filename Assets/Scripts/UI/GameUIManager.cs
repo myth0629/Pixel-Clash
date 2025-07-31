@@ -79,6 +79,7 @@ public class GameUIManager : MonoBehaviour
     private void Start()
     {
         SetupButtons();
+        InitializeDefaultParty(); // 기본 파티 설정
         
         if (showTitleOnStart)
         {
@@ -505,6 +506,31 @@ public class GameUIManager : MonoBehaviour
         }
         
         return partyInfo;
+    }
+    
+    /// <summary>기본 파티 초기화</summary>
+    private void InitializeDefaultParty()
+    {
+        // currentParty가 비어있고 availableCharacters가 있으면 첫 번째 캐릭터로 기본 파티 설정
+        if (currentParty.Count == 0 && availableCharacters != null && availableCharacters.Length > 0)
+        {
+            // 첫 번째 사용 가능한 캐릭터를 첫 번째 슬롯에 추가
+            var firstCharacter = availableCharacters[0];
+            if (firstCharacter != null)
+            {
+                // currentParty를 적절한 크기로 초기화
+                while (currentParty.Count < 2)
+                {
+                    currentParty.Add(null);
+                }
+                
+                currentParty[0] = firstCharacter;
+                Debug.Log($"기본 파티 설정: {firstCharacter.name}");
+                
+                // UI 업데이트
+                UpdatePartyInfo();
+            }
+        }
     }
 
     #endregion

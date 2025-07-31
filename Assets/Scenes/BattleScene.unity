@@ -1587,7 +1587,7 @@ MonoBehaviour:
   stageInfoText: {fileID: 0}
   difficultyText: {fileID: 0}
   partyMemberContainer: {fileID: 0}
-  partyMemberPrefab: {fileID: 2404109279144821187, guid: 337f710f5fe18416787d441cf2e9abd5, type: 3}
+  partyMemberPrefab: {fileID: 0}
   partySlot1Button: {fileID: 2055891965}
   partySlot2Button: {fileID: 1250472642}
   partySlot1Icon: {fileID: 700350576}
@@ -1606,7 +1606,6 @@ MonoBehaviour:
   gameUIElements:
   - {fileID: 505865940}
   - {fileID: 2002632595}
-  - {fileID: 0}
   - {fileID: 1503698996}
   - {fileID: 1670310953}
   - {fileID: 738037696}
@@ -1633,14 +1632,14 @@ MonoBehaviour:
   - 2
   - 4
   scrollDirection: {x: -1, y: 0}
-  scrollDuration: 3
+  scrollDuration: 1
   scrollOnRoundStart: 1
   useSmoothMovement: 1
   smoothingFactor: 5
-  enableInfiniteScroll: 0
-  resetThreshold: -1000
-  useScreenWidthForReset: 0
-  minResetDistance: 2000
+  enableInfiniteScroll: 1
+  cloneSpacing: 4.5
+  synchronizeLayerResets: 1
+  resetDelayMultiplier: 1
 --- !u!1 &320313304
 GameObject:
   m_ObjectHideFlags: 0
@@ -2283,6 +2282,7 @@ GameObject:
   - component: {fileID: 456156596}
   - component: {fileID: 456156598}
   - component: {fileID: 456156597}
+  - component: {fileID: 456156599}
   m_Layer: 0
   m_Name: background_layer_2_0
   m_TagString: Untagged
@@ -2299,7 +2299,7 @@ RectTransform:
   m_GameObject: {fileID: 456156595}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 6, y: 6, z: 1}
+  m_LocalScale: {x: 4.5, y: 4.5, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 780364781}
@@ -2307,7 +2307,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 1}
-  m_SizeDelta: {x: 5, y: 1.5}
+  m_SizeDelta: {x: 3.2, y: 1.8}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &456156597
 MonoBehaviour:
@@ -2330,8 +2330,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 69211babb30424befb64087c28702e00, type: 3}
-  m_Type: 2
-  m_PreserveAspect: 0
+  m_Type: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -2347,6 +2347,29 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 456156595}
   m_CullTransparentMesh: 1
+--- !u!223 &456156599
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 456156595}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 2
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 1
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
+  m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
+  m_SortingLayerID: 0
+  m_SortingOrder: 1
+  m_TargetDisplay: 0
 --- !u!1 &503611768
 GameObject:
   m_ObjectHideFlags: 0
@@ -4037,6 +4060,7 @@ GameObject:
   - component: {fileID: 780528706}
   - component: {fileID: 780528708}
   - component: {fileID: 780528707}
+  - component: {fileID: 780528709}
   m_Layer: 0
   m_Name: background_layer_1_0
   m_TagString: Untagged
@@ -4053,7 +4077,7 @@ RectTransform:
   m_GameObject: {fileID: 780528705}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 6, y: 6, z: 10}
+  m_LocalScale: {x: 4.5, y: 4.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 780364781}
@@ -4061,7 +4085,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 1}
-  m_SizeDelta: {x: 5, y: 1.5}
+  m_SizeDelta: {x: 3.2, y: 1.8}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &780528707
 MonoBehaviour:
@@ -4084,8 +4108,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 9cb443de5f6bc46ba97e81b5d0eccc59, type: 3}
-  m_Type: 2
-  m_PreserveAspect: 0
+  m_Type: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -4101,6 +4125,29 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 780528705}
   m_CullTransparentMesh: 1
+--- !u!223 &780528709
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 780528705}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 2
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 1
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
+  m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
+  m_SortingLayerID: 0
+  m_SortingOrder: 0
+  m_TargetDisplay: 0
 --- !u!1 &794589145
 GameObject:
   m_ObjectHideFlags: 0
@@ -5247,6 +5294,7 @@ GameObject:
   - component: {fileID: 1093306895}
   - component: {fileID: 1093306897}
   - component: {fileID: 1093306896}
+  - component: {fileID: 1093306898}
   m_Layer: 0
   m_Name: background_layer_3_0
   m_TagString: Untagged
@@ -5263,7 +5311,7 @@ RectTransform:
   m_GameObject: {fileID: 1093306894}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 6, y: 6, z: 5}
+  m_LocalScale: {x: 4.5, y: 4.5, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 780364781}
@@ -5271,7 +5319,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 1}
-  m_SizeDelta: {x: 5, y: 1.5}
+  m_SizeDelta: {x: 3.2, y: 1.8}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1093306896
 MonoBehaviour:
@@ -5294,8 +5342,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: a39012d716ea94ebd83abb312c34cb98, type: 3}
-  m_Type: 2
-  m_PreserveAspect: 0
+  m_Type: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -5311,6 +5359,29 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1093306894}
   m_CullTransparentMesh: 1
+--- !u!223 &1093306898
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1093306894}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 2
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 1
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
+  m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
+  m_SortingLayerID: 0
+  m_SortingOrder: 3
+  m_TargetDisplay: 0
 --- !u!1 &1130955327
 GameObject:
   m_ObjectHideFlags: 0
