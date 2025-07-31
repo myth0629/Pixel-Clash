@@ -10,7 +10,7 @@ public class BackgroundScroller : MonoBehaviour
 {
     [Header("스크롤링 설정")]
     [SerializeField] private RectTransform[] backgroundLayers; // 배경 레이어들
-    [SerializeField] private float[] scrollSpeeds = { 30f, 60f, 120f }; // 각 레이어별 속도 (패럴랙스)
+    [SerializeField] private float[] scrollSpeeds = { 20f, 40f, 80f }; // 각 레이어별 속도 (패럴랙스)
     [SerializeField] private Vector2 scrollDirection = Vector2.left; // 스크롤 방향
 
     [Header("스크롤링 동작 설정")]
@@ -19,18 +19,18 @@ public class BackgroundScroller : MonoBehaviour
 
     [Header("부드러운 움직임 설정")]
     [SerializeField] private bool useSmoothMovement = true; // 부드러운 움직임 사용
-    [SerializeField] private float smoothingFactor = 5f; // 부드러움 정도 (높을수록 부드러움)
+    [SerializeField] private float smoothingFactor = 8f; // 부드러움 정도 (높을수록 부드러움)
 
     [Header("무한 스크롤 설정")]
-    [SerializeField] private bool enableInfiniteScroll = false; // 스테이지 전환에서는 무한 스크롤 비활성화
-    [SerializeField] private float resetThreshold = -1000f; // 리셋 기준점
-    [SerializeField] private bool useScreenWidthForReset = false; // 화면 너비 기준 리셋 비활성화
-    [SerializeField] private float minResetDistance = 3000f; // 최소 리셋 거리 (훨씬 큰 값)
+    [SerializeField] private bool enableInfiniteScroll = true; // 무한 스크롤 활성화
+    [SerializeField] private bool useScreenWidthForReset = true; // 화면 너비 기준 리셋
+    [SerializeField] private float minResetDistance = 1920f; // 최소 리셋 거리
 
     // 스크롤 완료 이벤트
     public static event Action OnScrollComplete;
 
     private bool isScrolling = false;
+    private bool isStageTransition = false; // 스테이지 전환 여부
     private Vector2[] originalPositions; // 각 레이어의 원래 위치
     private Vector2[] targetPositions; // 각 레이어의 목표 위치 (부드러운 움직임용)
     private Coroutine scrollCoroutine;
@@ -113,7 +113,18 @@ public class BackgroundScroller : MonoBehaviour
         Debug.Log($"[{gameObject.name}] 스크롤 완료 이벤트 발생!");
         OnScrollComplete?.Invoke();
 
+        // 스테이지 전환 플래그 리셋
+        isStageTransition = false;
+
         Debug.Log($"[{gameObject.name}] 배경 스크롤링 정지");
+    }
+
+    /// <summary>배경 스크롤링 정지 후 위치 리셋 (스테이지 전환용)</summary>
+    public void StopScrollingAndReset()
+    {
+        StopScrolling();
+        ResetPositions();
+        Debug.Log($"[{gameObject.name}] 배경 스크롤링 정지 및 위치 리셋 완료");
     }
 
     /// <summary>배경 위치 리셋</summary>
@@ -135,7 +146,7 @@ public class BackgroundScroller : MonoBehaviour
             }
         }
 
-        Debug.Log("배경 위치 리셋 완료");
+        Debug.Log($"[{gameObject.name}] 배경 위치 리셋 완료");
     }
 
     /// <summary>스크롤링 상태 확인</summary>
@@ -188,7 +199,7 @@ public class BackgroundScroller : MonoBehaviour
                 layer.anchoredPosition = targetPositions[i];
             }
 
-            // 첫 번째 프레임에서 위치 변화 로그 (덜 빈번하게)
+            // 디버그 로그 (덜 빈번하게)
             if (Time.frameCount % 120 == 0) // 2초마다 로그
             {
                 Debug.Log($"[{gameObject.name}] Layer[{i}] 위치: {layer.anchoredPosition} (목표: {targetPositions[i]}, 속도: {speed})");
@@ -209,22 +220,13 @@ public class BackgroundScroller : MonoBehaviour
         
         if (useScreenWidthForReset)
         {
-            // 화면 너비를 기준으로 리셋 지점 계산 (작은 이미지 대응)
+            // 화면 너비를 기준으로 리셋 지점 계산
             float screenWidth = GetScreenWidth();
-            float layerWidth = layer.rect.width;
-            
-            // 화면 너비와 최소 리셋 거리 중 큰 값 사용
             resetDistance = Mathf.Max(screenWidth, minResetDistance);
-            
-            // 첫 번째 리셋에서만 로그 출력
-            if (Time.frameCount % 300 == 0) // 5초마다
-            {
-                Debug.Log($"[{gameObject.name}] Layer[{layerIndex}] - LayerWidth: {layerWidth}, ScreenWidth: {screenWidth}, ResetDistance: {resetDistance}");
-            }
         }
         else
         {
-            // 기존 방식: 레이어 너비 기준
+            // 레이어 너비 기준
             resetDistance = layer.rect.width;
         }
         
@@ -239,7 +241,7 @@ public class BackgroundScroller : MonoBehaviour
                 layer.anchoredPosition += resetOffset;
                 targetPositions[layerIndex] += resetOffset;
                 
-                Debug.Log($"[{gameObject.name}] Layer[{layerIndex}] 무한스크롤 리셋: {layer.anchoredPosition.x} → {layer.anchoredPosition.x} (ResetDistance: {resetDistance})");
+                Debug.Log($"[{gameObject.name}] Layer[{layerIndex}] 무한스크롤 리셋: {layer.anchoredPosition.x} (ResetDistance: {resetDistance})");
             }
         }
         // 오른쪽으로 스크롤하는 경우
@@ -297,12 +299,18 @@ public class BackgroundScroller : MonoBehaviour
         if (backgroundLayers != null)
         {
             originalPositions = new Vector2[backgroundLayers.Length];
+            targetPositions = new Vector2[backgroundLayers.Length];
             for (int i = 0; i < backgroundLayers.Length; i++)
             {
                 if (backgroundLayers[i] != null)
+                {
                     originalPositions[i] = backgroundLayers[i].anchoredPosition;
+                    targetPositions[i] = backgroundLayers[i].anchoredPosition;
+                }
             }
         }
+        
+        Debug.Log($"[{gameObject.name}] 배경 레이어 설정 완료");
     }
     #endregion
 
@@ -313,6 +321,7 @@ public class BackgroundScroller : MonoBehaviour
         Debug.Log($"[{gameObject.name}] BackgroundScroller - StageManager 이벤트 구독");
         StageManager.OnRoundStart += OnRoundStart;
         StageManager.OnStageTransitionStart += OnStageTransitionStart;
+        StageManager.OnRoundTransitionStart += OnRoundTransitionStart; // 라운드 전환 이벤트 추가
     }
 
     private void OnDisable()
@@ -321,6 +330,7 @@ public class BackgroundScroller : MonoBehaviour
         Debug.Log($"[{gameObject.name}] BackgroundScroller - StageManager 이벤트 구독 해제");
         StageManager.OnRoundStart -= OnRoundStart;
         StageManager.OnStageTransitionStart -= OnStageTransitionStart;
+        StageManager.OnRoundTransitionStart -= OnRoundTransitionStart; // 라운드 전환 이벤트 해제
     }
 
     /// <summary>스테이지 전환 시작 시 호출</summary>
@@ -336,6 +346,33 @@ public class BackgroundScroller : MonoBehaviour
         }
         
         Debug.Log($"[{gameObject.name}] 배경 레이어 개수: {backgroundLayers.Length}");
+        
+        // 스테이지 전환 플래그 설정
+        isStageTransition = true;
+        
+        // 스테이지 전환 시에는 배경 위치 리셋 후 스크롤 시작
+        ResetPositions();
+        StartScrolling();
+    }
+
+    /// <summary>라운드 전환 시작 시 호출 (배경 리셋 없음)</summary>
+    private void OnRoundTransitionStart(int stageNumber)
+    {
+        Debug.Log($"[{gameObject.name}] 라운드 전환 시작 - Stage {stageNumber} - 배경 스크롤링 시작 (리셋 없음)");
+        
+        // 배경 레이어 확인
+        if (backgroundLayers == null || backgroundLayers.Length == 0)
+        {
+            Debug.LogWarning($"[{gameObject.name}] backgroundLayers가 설정되지 않았습니다!");
+            return;
+        }
+        
+        Debug.Log($"[{gameObject.name}] 배경 레이어 개수: {backgroundLayers.Length}");
+        
+        // 라운드 전환 플래그 설정 (스테이지 전환이 아님)
+        isStageTransition = false;
+        
+        // 라운드 전환 시에는 배경 위치 리셋 없이 바로 스크롤 시작
         StartScrolling();
     }
 
@@ -354,9 +391,13 @@ public class BackgroundScroller : MonoBehaviour
         }
         
         Debug.Log($"[{gameObject.name}] 배경 레이어 개수: {backgroundLayers.Length}");
+        
+        // 라운드 시작 플래그 설정 (스테이지 전환이 아님)
+        isStageTransition = false;
+        
         StartScrolling();
         
-        // 설정된 시간 후 자동 정지
+        // 라운드 시작 시에도 자동 정지 (스크롤 완료 이벤트 발생)
         StartCoroutine(StopScrollingAfterDelay(scrollDuration));
     }
 
@@ -367,7 +408,8 @@ public class BackgroundScroller : MonoBehaviour
         
         Debug.Log($"[{gameObject.name}] {delay}초 후 배경 스크롤링 자동 정지");
         StopScrolling();
-        ResetPositions();
+        // 라운드 진행 중에는 배경 위치를 유지 (ResetPositions 제거)
+        // 스테이지 전환 시에만 수동으로 리셋 호출
     }
     #endregion
 

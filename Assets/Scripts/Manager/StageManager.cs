@@ -28,6 +28,7 @@ public class StageManager : MonoBehaviour
     public static event Action OnGameComplete;
     public static event Action<int> OnStageTransitionStart; // 스테이지 전환 시작
     public static event Action<int> OnStageTransitionComplete; // 스테이지 전환 완료
+    public static event Action<int> OnRoundTransitionStart; // 라운드 전환 시작 (배경 리셋 없음)
 
     // 프로퍼티
     public int CurrentStage => currentStage;
@@ -93,7 +94,21 @@ public class StageManager : MonoBehaviour
         yield return new WaitForSeconds(delay);
 
         Debug.Log($"Stage {currentStage}-{currentRound} 시작!");
+        
+        // 스크롤 대기 상태로 설정
+        isWaitingForScrollComplete = true;
+        Debug.Log("라운드 시작 - 배경 스크롤 완료 대기 중...");
+        
+        // 라운드 시작 이벤트 발생 (배경 스크롤링 시작)
         OnRoundStart?.Invoke(currentStage, currentRound);
+        
+        // 스크롤이 완료될 때까지 대기
+        while (isWaitingForScrollComplete)
+        {
+            yield return null; // 한 프레임 대기
+        }
+        
+        Debug.Log("배경 스크롤 완료 - 전투 시작!");
 
         // 전투 시작
         if (BattleManager.Instance != null)
@@ -139,9 +154,9 @@ public class StageManager : MonoBehaviour
     {
         Debug.Log($"=== 라운드 전환 시작: {currentStage}-{currentRound} ===");
         
-        // 1. 라운드 전환 이벤트 발생 (스테이지 전환 이벤트 재사용)
-        Debug.Log($"OnStageTransitionStart 이벤트 발생: {currentStage} (라운드 {currentRound})");
-        OnStageTransitionStart?.Invoke(currentStage);
+        // 1. 라운드 전환 이벤트 발생 (배경 리셋 없이 스크롤만)
+        Debug.Log($"OnRoundTransitionStart 이벤트 발생: {currentStage} (라운드 {currentRound})");
+        OnRoundTransitionStart?.Invoke(currentStage);
         
         // 2. 스크롤 완료 대기 상태로 설정
         isWaitingForScrollComplete = true;
@@ -156,8 +171,16 @@ public class StageManager : MonoBehaviour
         // 4. 라운드 전환 완료
         Debug.Log($"=== 라운드 전환 완료: {currentStage}-{currentRound} 시작 ===");
         
-        // 5. 다음 라운드 시작
-        StartCoroutine(StartRoundWithDelay(0.5f));
+        // 5. 다음 라운드 시작 (배경 스크롤은 이미 완료되었으므로 바로 전투 시작)
+        Debug.Log($"Stage {currentStage}-{currentRound} 전투 시작!");
+
+        // 전투 시작 (OnRoundStart 이벤트 없이 바로 시작)
+        if (BattleManager.Instance != null)
+        {
+            int enemyCount = GetEnemyCountForCurrentRound();
+            // GameUIManager에서 설정한 파티 사용
+            BattleManager.Instance.StartBattleWithUIParty(enemyCount);
+        }
     }
 
     private IEnumerator MoveToNextStage()
