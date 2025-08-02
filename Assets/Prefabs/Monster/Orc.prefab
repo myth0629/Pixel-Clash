@@ -46,7 +46,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7af22d92a7a744c3b96491c7c612ca3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attackInterval: 1.5
+  attackInterval: 1
+  walkInDuration: 2
+  offscreenDistance: 10
 --- !u!95 &5796733930892475232
 Animator:
   serializedVersion: 7

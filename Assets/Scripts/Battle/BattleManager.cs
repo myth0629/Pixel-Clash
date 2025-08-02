@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -19,6 +20,9 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private float enemyCharacterSpacing = 2f;
     [SerializeField] private GameObject enemyPrefab; // 호환성을 위해 유지
     [SerializeField] private MonsterData[] monsterDataList; // 새로운 몬스터 데이터 배열
+
+    [Header("전투 시작 설정")]
+    [SerializeField] private float battleStartDelay = 3f;  // 모든 캐릭터가 동시에 사용할 전투 시작 딜레이
 
     [SerializeField] private HealthBarUI healthBarPrefab; // 인스펙터에 프리팹 연결
     [SerializeField] private Transform uiRoot;            // 월드 스페이스 Canvas 루트
@@ -88,11 +92,28 @@ public class BattleManager : MonoBehaviour
 
         SpawnPlayers(partyInfo);
         SpawnWave(waveEnemyCount);
+        
+        // 모든 캐릭터들이 동시에 전투를 시작하도록 딜레이 적용
+        StartCoroutine(StartBattleAfterDelay());
     }
 
     /// <summary>GameUIManager에서 설정한 파티로 전투 시작</summary>
     public void StartBattleWithUIParty(int waveEnemyCount = 3)
     {
+        // 기존 플레이어들이 있다면 새로운 라운드로 간주
+        bool isNewRound = _players.Count > 0;
+        if (isNewRound)
+        {
+            Debug.Log("새로운 라운드 시작 - 플레이어들을 전투 준비 상태로 설정");
+            foreach (var player in _players)
+            {
+                if (player != null)
+                {
+                    player.StartNewRound();
+                }
+            }
+        }
+        
         List<(CharacterData, int)> partyInfo;
         
         // GameUIManager에서 파티 정보 가져오기
@@ -122,7 +143,51 @@ public class BattleManager : MonoBehaviour
         }
         
         Debug.Log($"최종 파티 정보: {partyInfo.Count}명으로 전투 시작");
-        StartBattle(partyInfo, waveEnemyCount);
+        
+        if (isNewRound)
+        {
+            // 새로운 라운드면 적들만 제거하고 플레이어는 유지
+            ClearEnemiesOnly();
+            SpawnWave(waveEnemyCount);
+            IsBattleRunning = true;  // 새로운 라운드에서 전투 상태 활성화
+            Debug.Log("새로운 라운드 - 전투 상태 활성화");
+            
+            // 새로운 라운드에서도 통합 딜레이 적용
+            StartCoroutine(StartBattleAfterDelay());
+        }
+        else
+        {
+            // 첫 번째 라운드면 모든 것을 새로 시작
+            StartBattle(partyInfo, waveEnemyCount);
+        }
+    }
+
+    /// <summary>통합 전투 시작 딜레이 코루틴</summary>
+    private IEnumerator StartBattleAfterDelay()
+    {
+        Debug.Log($"모든 캐릭터들이 {battleStartDelay}초 후 동시에 전투 시작");
+        
+        yield return new WaitForSeconds(battleStartDelay);
+        
+        // 모든 플레이어들의 전투 시작
+        foreach (var player in _players)
+        {
+            if (player != null)
+            {
+                player.StartCombat();
+            }
+        }
+        
+        // 모든 적들의 전투 시작  
+        foreach (var enemy in _enemies)
+        {
+            if (enemy != null)
+            {
+                enemy.StartCombat();
+            }
+        }
+        
+        Debug.Log("모든 캐릭터들의 전투 시작!");
     }
 
     /// <summary>기존 전투 정리</summary>
@@ -155,6 +220,31 @@ public class BattleManager : MonoBehaviour
         // 게임오버 패널 비활성화
         if (GameOverPanel != null)
             GameOverPanel.SetActive(false);
+    }
+
+    /// <summary>적들만 제거 (새로운 라운드용)</summary>
+    private void ClearEnemiesOnly()
+    {
+        // 기존 적들 제거 (적의 체력바는 Enemy가 사라질 때 자동으로 정리됨)
+        foreach (var enemy in _enemies)
+        {
+            if (enemy != null)
+            {
+                // Enemy에 연결된 체력바도 함께 제거하기 위해 
+                // 체력바 리스트에서 해당 Enemy와 연결된 것들을 찾아서 제거
+                for (int i = _healthBars.Count - 1; i >= 0; i--)
+                {
+                    if (_healthBars[i] != null && _healthBars[i].gameObject.name.Contains("Enemy"))
+                    {
+                        Destroy(_healthBars[i].gameObject);
+                        _healthBars.RemoveAt(i);
+                    }
+                }
+                
+                Destroy(enemy.gameObject);
+            }
+        }
+        _enemies.Clear();
     }
 
     private void SpawnPlayers(List<(CharacterData, int)> party)
@@ -209,7 +299,7 @@ public class BattleManager : MonoBehaviour
             bool isFrontRow = i == 0; // 첫 번째는 전방, 두 번째는 후방
             float xOffset = isFrontRow ? 0f : enemyCharacterSpacing; // 후방은 좌측으로 spacing만큼 이동
             
-            go.transform.localPosition = new Vector3(xOffset, 0, 0);
+            Vector3 finalPosition = new Vector3(xOffset, 0, 0);
 
             var enemy = go.GetComponent<Enemy>();
 
@@ -261,6 +351,9 @@ public class BattleManager : MonoBehaviour
                 
                 enemy.Setup(baseHp, baseAtk);
             }
+
+            // 몬스터 등장 애니메이션 시작 (화면 밖에서 걸어들어옴)
+            enemy.StartWalkInAnimation(finalPosition);
 
             // ▼ HP 바 생성 & 초기화
             var bar = Instantiate(healthBarPrefab, uiRoot);

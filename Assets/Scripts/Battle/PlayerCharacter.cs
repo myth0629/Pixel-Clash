@@ -1,5 +1,6 @@
 using UnityEditor.U2D.Animation;
 using UnityEngine;
+using System.Collections;
 
 /// 파티 슬롯에 들어가는 플레이어 캐릭터.
 /// CharacterData + 레벨을 받아서 내부 스탯 계산.
@@ -10,6 +11,7 @@ public class PlayerCharacter : CharacterBase
     
     private Enemy enemy;  // 현재 타겟 적
     private Animator animator;
+    private bool canAttack = false;  // 공격 가능 여부
 
     private void Start()
     {
@@ -49,13 +51,34 @@ public class PlayerCharacter : CharacterBase
 
         InitStats(hp, atk, interval);
     }
+    
+    protected override void Update()
+    {
+        // 공격 가능 상태가 아니면 공격하지 않음
+        if (!canAttack)
+            return;
+        
+        // BattleManager 상태 확인
+        if (!BattleManager.Instance.IsBattleRunning)
+        {
+            Debug.LogWarning($"[{gameObject.name}] BattleManager.IsBattleRunning이 false입니다!");
+            return;
+        }
+            
+        base.Update();
+    }
 
     /// <summary>자동 공격 로직: 가장 가까운 적 타깃팅</summary>
     protected override void TryAttack()
     {
         enemy = BattleManager.Instance.GetNearestEnemy(transform.position);
-        if (enemy == null) return;
+        if (enemy == null) 
+        {
+            Debug.LogWarning($"[{gameObject.name}] 타겟할 적이 없습니다!");
+            return;
+        }
         
+        Debug.Log($"[{gameObject.name}] 적 {enemy.name} 공격!");
         animator.SetTrigger("Attack");
     }
     
@@ -113,5 +136,19 @@ public class PlayerCharacter : CharacterBase
         {
             Debug.LogError($"[{gameObject.name}] Animator가 null입니다!");
         }
+    }
+    
+    /// <summary>BattleManager에서 호출 - 전투 시작</summary>
+    public void StartCombat()
+    {
+        canAttack = true;
+        Debug.Log($"[{gameObject.name}] 전투 시작!");
+    }
+    
+    /// <summary>새로운 라운드 시작 시 호출 - 전투 준비</summary>
+    public void StartNewRound()
+    {
+        canAttack = false;
+        Debug.Log($"[{gameObject.name}] 새로운 라운드 준비 - BattleManager 딜레이 대기 중");
     }
 }

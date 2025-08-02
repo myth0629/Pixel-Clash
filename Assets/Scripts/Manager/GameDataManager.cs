@@ -26,7 +26,7 @@ public class GameDataManager : MonoBehaviour
     public int CurrentGold => currentGold;
     public int CurrentExp => currentExp;
     public int PlayerLevel => playerLevel;
-    public int ExpToNextLevel => GetExpRequiredForLevel(playerLevel + 1) - currentExp;
+    public int ExpToNextLevel => GetExpForNextLevel() - currentExp;
 
     private void Awake()
     {
@@ -115,29 +115,27 @@ public class GameDataManager : MonoBehaviour
     /// <summary>레벨업 체크 및 처리</summary>
     private void CheckLevelUp()
     {
-        int expRequired = GetExpRequiredForLevel(playerLevel + 1);
+        int expForNextLevel = GetExpForNextLevel();
         
-        while (currentExp >= expRequired)
+        while (currentExp >= expForNextLevel)
         {
+            // 레벨업에 사용된 경험치 차감
+            currentExp -= expForNextLevel;
             playerLevel++;
-            OnLevelUp?.Invoke(playerLevel);
-            Debug.Log($"레벨업! 현재 레벨: {playerLevel}");
             
-            expRequired = GetExpRequiredForLevel(playerLevel + 1);
+            OnLevelUp?.Invoke(playerLevel);
+            OnExpChanged?.Invoke(currentExp);
+            Debug.Log($"레벨업! 현재 레벨: {playerLevel}, 남은 경험치: {currentExp}");
+            
+            // 다음 레벨업에 필요한 경험치 재계산
+            expForNextLevel = GetExpForNextLevel();
         }
     }
 
-    /// <summary>특정 레벨에 필요한 총 경험치 계산</summary>
-    private int GetExpRequiredForLevel(int level)
+    /// <summary>현재 레벨에서 다음 레벨로 올라가는 데 필요한 경험치</summary>
+    private int GetExpForNextLevel()
     {
-        if (level <= 1) return 0;
-        
-        int totalExp = 0;
-        for (int i = 2; i <= level; i++)
-        {
-            totalExp += Mathf.RoundToInt(baseExpToLevelUp * Mathf.Pow(expGrowthRate, i - 2));
-        }
-        return totalExp;
+        return Mathf.RoundToInt(baseExpToLevelUp * Mathf.Pow(expGrowthRate, playerLevel - 1));
     }
     #endregion
 
@@ -197,12 +195,11 @@ public class GameDataManager : MonoBehaviour
     /// <summary>경험치 진행률 (0~1)</summary>
     public float GetExpProgress()
     {
-        int currentLevelExp = GetExpRequiredForLevel(playerLevel);
-        int nextLevelExp = GetExpRequiredForLevel(playerLevel + 1);
+        int expForNextLevel = GetExpForNextLevel();
         
-        if (nextLevelExp <= currentLevelExp) return 1f;
+        if (expForNextLevel <= 0) return 1f;
         
-        return (float)(currentExp - currentLevelExp) / (nextLevelExp - currentLevelExp);
+        return (float)currentExp / expForNextLevel;
     }
     #endregion
 }
