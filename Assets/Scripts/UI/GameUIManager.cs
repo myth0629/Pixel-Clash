@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,6 +14,7 @@ public class GameUIManager : MonoBehaviour
     [SerializeField] private GameObject titlePanel;
     [SerializeField] private Button startGameButton;
     [SerializeField] private Button settingsButton;
+    [SerializeField] private Button shopButton;  // 상점 버튼 추가
     [SerializeField] private Button exitButton;
 
     [Header("준비 화면")]
@@ -41,6 +43,23 @@ public class GameUIManager : MonoBehaviour
     [SerializeField] private Button closeSelectionButton; // 선택창 닫기 버튼
     [SerializeField] private CharacterData[] availableCharacters; // 선택 가능한 캐릭터들
 
+    [Header("상점")]
+    [SerializeField] private GameObject shopPanel; // 상점 패널
+    [SerializeField] private Transform shopCharacterContainer; // 상점 캐릭터 리스트 컨테이너 (Scroll View의 Content)
+    [SerializeField] private GameObject shopCharacterItemPrefab; // 상점 캐릭터 아이템 프리팹
+    [SerializeField] private Button closeShopButton; // 상점 닫기 버튼
+    [SerializeField] private TMPro.TextMeshProUGUI shopGoldText; // 상점에서 보여줄 골드 텍스트
+    [SerializeField] private CharacterData[] shopCharacters; // 상점에서 판매할 캐릭터들
+
+    [Header("구매 확인 팝업")]
+    [SerializeField] private GameObject purchaseConfirmPanel;  // 구매 확인 팝업
+    [SerializeField] private TMPro.TextMeshProUGUI confirmMessageText;  // 확인 메시지
+    [SerializeField] private TMPro.TextMeshProUGUI confirmCharacterNameText;  // 캐릭터 이름
+    [SerializeField] private TMPro.TextMeshProUGUI confirmPriceText;  // 가격 텍스트
+    [SerializeField] private Image confirmCharacterIcon;  // 캐릭터 아이콘
+    [SerializeField] private Button confirmPurchaseButton;  // 확인 버튼
+    [SerializeField] private Button cancelPurchaseButton;   // 취소 버튼
+
     [Header("게임 UI")]
     [SerializeField] private GameObject gameUIPanel;
     [SerializeField] private GameObject[] gameUIElements; // 게임 중 활성화할 UI들
@@ -61,6 +80,10 @@ public class GameUIManager : MonoBehaviour
     // 파티 관리 변수들
     private int selectedSlotIndex = -1; // 현재 선택 중인 파티 슬롯 (-1이면 선택 안됨)
     private List<CharacterData> currentParty = new List<CharacterData>(); // 현재 파티 구성
+    
+    // 상점 관리 변수들
+    private HashSet<string> unlockedCharacters = new HashSet<string>(); // 해금된 캐릭터 이름들
+    private CharacterData pendingPurchaseCharacter; // 구매 대기 중인 캐릭터
 
     private void Awake()
     {
@@ -80,10 +103,54 @@ public class GameUIManager : MonoBehaviour
     {
         SetupButtons();
         InitializeDefaultParty(); // 기본 파티 설정
+        LoadUnlockedCharacters(); // 해금된 캐릭터 로드
+        
+        // 골드 변경 이벤트 구독
+        if (GameDataManager.Instance != null)
+        {
+            GameDataManager.OnGoldChanged += OnGoldChanged;
+        }
         
         if (showTitleOnStart)
         {
             ShowTitleScreen();
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // 이벤트 구독 해제
+        if (GameDataManager.Instance != null)
+        {
+            GameDataManager.OnGoldChanged -= OnGoldChanged;
+        }
+    }
+
+    /// <summary>골드 변경 시 호출</summary>
+    private void OnGoldChanged(int newGold)
+    {
+        // 상점이 열려있으면 골드 표시 업데이트
+        if (shopPanel != null && shopPanel.activeSelf)
+        {
+            UpdateShopGoldDisplay();
+            RefreshShopItemsAffordability();
+        }
+    }
+
+    /// <summary>상점 아이템들의 구매 가능 여부만 업데이트</summary>
+    private void RefreshShopItemsAffordability()
+    {
+        if (shopCharacterContainer == null) return;
+
+        // 모든 ShopCharacterItem 컴포넌트를 찾아서 RefreshItem 호출
+        var shopItems = shopCharacterContainer.GetComponentsInChildren<MonoBehaviour>();
+        foreach (var item in shopItems)
+        {
+            if (item.GetType().Name == "ShopCharacterItem")
+            {
+                var refreshMethod = item.GetType().GetMethod("RefreshItem");
+                refreshMethod?.Invoke(item, null);
+            }
         }
     }
 
@@ -94,6 +161,9 @@ public class GameUIManager : MonoBehaviour
         
         if (settingsButton != null)
             settingsButton.onClick.AddListener(OnSettingsClicked);
+        
+        if (shopButton != null)
+            shopButton.onClick.AddListener(OnShopClicked);
         
         if (exitButton != null)
             exitButton.onClick.AddListener(OnExitClicked);
@@ -416,8 +486,9 @@ public class GameUIManager : MonoBehaviour
             Destroy(child.gameObject);
         }
 
-        // 선택 가능한 캐릭터들의 버튼 생성
-        foreach (var character in availableCharacters)
+        // 선택 가능한 캐릭터들의 버튼 생성 (해금된 캐릭터만)
+        CharacterData[] unlockedChars = GetUnlockedCharacters();
+        foreach (var character in unlockedChars)
         {
             if (character != null)
             {
@@ -561,6 +632,272 @@ public class GameUIManager : MonoBehaviour
         isGameStarted = false;
         
         ShowTitleScreen();
+    }
+
+    #endregion
+
+    #region 상점 시스템
+
+    /// <summary>상점 버튼 클릭 시 호출</summary>
+    private void OnShopClicked()
+    {
+        Debug.Log("상점 열기");
+        ShowShopScreen();
+    }
+
+    /// <summary>상점 화면 표시</summary>
+    private void ShowShopScreen()
+    {
+        // 모든 패널 비활성화
+        if (titlePanel != null) titlePanel.SetActive(false);
+        //if (preparePanel != null) preparePanel.SetActive(false);
+        if (gameUIPanel != null) gameUIPanel.SetActive(false);
+        if (characterSelectionPanel != null) characterSelectionPanel.SetActive(false);
+
+        // 상점 패널 활성화
+        if (shopPanel != null)
+        {
+            shopPanel.SetActive(true);
+            SetupShopButtons();
+            RefreshShopItems();
+            UpdateShopGoldDisplay();
+        }
+    }
+
+    /// <summary>상점 버튼들 설정</summary>
+    private void SetupShopButtons()
+    {
+        if (closeShopButton != null)
+        {
+            closeShopButton.onClick.RemoveAllListeners();
+            closeShopButton.onClick.AddListener(CloseShop);
+        }
+
+        // 구매 확인 팝업 버튼들 설정
+        if (confirmPurchaseButton != null)
+        {
+            confirmPurchaseButton.onClick.RemoveAllListeners();
+            confirmPurchaseButton.onClick.AddListener(OnConfirmPurchase);
+        }
+
+        if (cancelPurchaseButton != null)
+        {
+            cancelPurchaseButton.onClick.RemoveAllListeners();
+            cancelPurchaseButton.onClick.AddListener(OnCancelPurchase);
+        }
+
+        // 구매 확인 팝업 초기 상태 설정
+        if (purchaseConfirmPanel != null)
+            purchaseConfirmPanel.SetActive(false);
+    }
+
+    /// <summary>상점 닫기</summary>
+    private void CloseShop()
+    {
+        if (shopPanel != null)
+            shopPanel.SetActive(false);
+        
+        ShowTitleScreen();
+    }
+
+    /// <summary>상점 아이템 목록 새로고침</summary>
+    private void RefreshShopItems()
+    {
+        if (shopCharacterContainer == null || shopCharacters == null) return;
+
+        // 기존 아이템들 제거
+        foreach (Transform child in shopCharacterContainer)
+        {
+            Destroy(child.gameObject);
+        }
+
+        // 상점 캐릭터들을 순회하며 아이템 생성
+        foreach (var character in shopCharacters)
+        {
+            if (character == null) continue;
+            CreateShopCharacterItem(character);
+        }
+    }
+
+    /// <summary>상점 캐릭터 아이템 생성</summary>
+    private void CreateShopCharacterItem(CharacterData character)
+    {
+        if (shopCharacterItemPrefab == null) return;
+
+        GameObject itemObject = Instantiate(shopCharacterItemPrefab, shopCharacterContainer);
+        var shopItem = itemObject.GetComponent("ShopCharacterItem");
+        
+        if (shopItem != null)
+        {
+            bool isUnlocked = IsCharacterUnlocked(character);
+            // Reflection을 사용하여 SetupItem 메서드 호출
+            var setupMethod = shopItem.GetType().GetMethod("SetupItem");
+            if (setupMethod != null)
+            {
+                setupMethod.Invoke(shopItem, new object[] { character, isUnlocked, (Action<CharacterData>)OnPurchaseCharacter });
+            }
+        }
+    }
+
+    /// <summary>캐릭터 구매 버튼 클릭 시 호출 - 확인 팝업 표시</summary>
+    private void OnPurchaseCharacter(CharacterData character)
+    {
+        if (character == null || IsCharacterUnlocked(character)) return;
+
+        // 구매 대기 캐릭터 설정
+        pendingPurchaseCharacter = character;
+
+        // 구매 확인 팝업 표시
+        ShowPurchaseConfirmPopup(character);
+    }
+
+    /// <summary>구매 확인 팝업 표시</summary>
+    private void ShowPurchaseConfirmPopup(CharacterData character)
+    {
+        if (character == null || purchaseConfirmPanel == null) return;
+
+        // 캐릭터 정보 표시
+        if (confirmCharacterNameText != null)
+            confirmCharacterNameText.text = character.displayName;
+
+        if (confirmPriceText != null)
+            confirmPriceText.text = $"{character.unlockCost} 골드";
+
+        if (confirmCharacterIcon != null && character.icon != null)
+            confirmCharacterIcon.sprite = character.icon;
+
+        if (confirmMessageText != null)
+            confirmMessageText.text = $"'{character.displayName}' 캐릭터를 구매하시겠습니까?";
+
+        // 골드 부족 체크
+        bool canAfford = GameDataManager.Instance != null && 
+                        GameDataManager.Instance.CurrentGold >= character.unlockCost;
+        
+        if (confirmPurchaseButton != null)
+            confirmPurchaseButton.interactable = canAfford;
+
+        // 팝업 표시
+        purchaseConfirmPanel.SetActive(true);
+    }
+
+    /// <summary>구매 확인 버튼 클릭</summary>
+    private void OnConfirmPurchase()
+    {
+        if (pendingPurchaseCharacter == null) return;
+
+        int price = pendingPurchaseCharacter.unlockCost;
+        
+        if (GameDataManager.Instance != null && GameDataManager.Instance.CurrentGold >= price)
+        {
+            // 골드 차감
+            GameDataManager.Instance.SpendGold(price);
+            
+            // 캐릭터 해금
+            UnlockCharacter(pendingPurchaseCharacter);
+            
+            // UI 새로고침
+            RefreshShopItems();
+            UpdateShopGoldDisplay();
+            
+            Debug.Log($"캐릭터 '{pendingPurchaseCharacter.name}' 구매 완료! (가격: {price} 골드)");
+        }
+        else
+        {
+            Debug.Log("골드가 부족합니다!");
+        }
+
+        // 팝업 닫기
+        ClosePurchaseConfirmPopup();
+    }
+
+    /// <summary>구매 취소 버튼 클릭</summary>
+    private void OnCancelPurchase()
+    {
+        ClosePurchaseConfirmPopup();
+    }
+
+    /// <summary>구매 확인 팝업 닫기</summary>
+    private void ClosePurchaseConfirmPopup()
+    {
+        if (purchaseConfirmPanel != null)
+            purchaseConfirmPanel.SetActive(false);
+
+        pendingPurchaseCharacter = null;
+    }
+
+    /// <summary>캐릭터 해금</summary>
+    private void UnlockCharacter(CharacterData character)
+    {
+        if (character == null) return;
+        
+        unlockedCharacters.Add(character.name);
+        SaveUnlockedCharacters();
+    }
+
+    /// <summary>캐릭터 해금 여부 확인</summary>
+    private bool IsCharacterUnlocked(CharacterData character)
+    {
+        if (character == null) return false;
+        return unlockedCharacters.Contains(character.name);
+    }
+
+    /// <summary>상점 골드 표시 업데이트</summary>
+    private void UpdateShopGoldDisplay()
+    {
+        if (shopGoldText != null && GameDataManager.Instance != null)
+        {
+            shopGoldText.text = $"{GameDataManager.Instance.GetFormattedGold()} G";
+        }
+    }
+
+    /// <summary>해금된 캐릭터 저장</summary>
+    private void SaveUnlockedCharacters()
+    {
+        string unlockedList = string.Join(",", unlockedCharacters);
+        PlayerPrefs.SetString("UnlockedCharacters", unlockedList);
+        PlayerPrefs.Save();
+    }
+
+    /// <summary>해금된 캐릭터 로드</summary>
+    private void LoadUnlockedCharacters()
+    {
+        string unlockedList = PlayerPrefs.GetString("UnlockedCharacters", "");
+        unlockedCharacters.Clear();
+        
+        if (!string.IsNullOrEmpty(unlockedList))
+        {
+            string[] characterNames = unlockedList.Split(',');
+            foreach (string name in characterNames)
+            {
+                if (!string.IsNullOrEmpty(name))
+                {
+                    unlockedCharacters.Add(name);
+                }
+            }
+        }
+        
+        // 기본 캐릭터는 항상 해금상태로 설정
+        if (availableCharacters != null && availableCharacters.Length > 0)
+        {
+            unlockedCharacters.Add(availableCharacters[0].name);
+        }
+    }
+
+    /// <summary>해금된 캐릭터만 반환 (파티 선택에서 사용)</summary>
+    public CharacterData[] GetUnlockedCharacters()
+    {
+        if (availableCharacters == null) return new CharacterData[0];
+        
+        List<CharacterData> unlocked = new List<CharacterData>();
+        foreach (var character in availableCharacters)
+        {
+            if (character != null && IsCharacterUnlocked(character))
+            {
+                unlocked.Add(character);
+            }
+        }
+        
+        return unlocked.ToArray();
     }
 
     #endregion
