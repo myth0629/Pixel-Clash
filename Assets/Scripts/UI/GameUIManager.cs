@@ -50,6 +50,10 @@ public class GameUIManager : MonoBehaviour
     [SerializeField] private Button closeShopButton; // 상점 닫기 버튼
     [SerializeField] private TMPro.TextMeshProUGUI shopGoldText; // 상점에서 보여줄 골드 텍스트
     [SerializeField] private CharacterData[] shopCharacters; // 상점에서 판매할 캐릭터들
+    
+    [Header("테스트 기능")]
+    [SerializeField] private Button testRefundButton; // 테스트용 구매 취소 버튼
+    [SerializeField] private GameObject testPanel; // 테스트 기능 패널
 
     [Header("구매 확인 팝업")]
     [SerializeField] private GameObject purchaseConfirmPanel;  // 구매 확인 팝업
@@ -689,6 +693,13 @@ public class GameUIManager : MonoBehaviour
         // 구매 확인 팝업 초기 상태 설정
         if (purchaseConfirmPanel != null)
             purchaseConfirmPanel.SetActive(false);
+
+        // 테스트 버튼 설정
+        if (testRefundButton != null)
+        {
+            testRefundButton.onClick.RemoveAllListeners();
+            testRefundButton.onClick.AddListener(ShowTestRefundMenu);
+        }
     }
 
     /// <summary>상점 닫기</summary>
@@ -914,6 +925,127 @@ public class GameUIManager : MonoBehaviour
     {
         if (element != null)
             element.SetActive(active);
+    }
+
+    #endregion
+
+    #region ▶ 테스트 기능 ◀
+
+    /// <summary>테스트용 구매 취소 메뉴 표시</summary>
+    private void ShowTestRefundMenu()
+    {
+        if (unlockedCharacters.Count == 0)
+        {
+            Debug.Log("테스트: 구매 취소할 캐릭터가 없습니다.");
+            return;
+        }
+
+        Debug.Log("=== 테스트: 구매 취소 메뉴 ===");
+        for (int i = 0; i < shopCharacters.Length; i++)
+        {
+            var character = shopCharacters[i];
+            if (IsCharacterUnlocked(character))
+            {
+                Debug.Log($"{i + 1}. {character.displayName} - {character.unlockCost} 골드 환불 가능");
+            }
+        }
+        
+        Debug.Log("Unity 콘솔에서 TestRefundCharacterByIndex(인덱스) 메서드를 호출하여 환불하세요.");
+        Debug.Log("예: TestRefundCharacterByIndex(0) - 첫 번째 해금된 캐릭터 환불");
+    }
+
+    /// <summary>테스트용: 인덱스로 캐릭터 구매 취소</summary>
+    public void TestRefundCharacterByIndex(int index)
+    {
+        if (shopCharacters == null || index < 0 || index >= shopCharacters.Length)
+        {
+            Debug.LogError($"테스트: 잘못된 인덱스입니다. (0-{shopCharacters.Length - 1} 사이의 값을 입력하세요)");
+            return;
+        }
+
+        var character = shopCharacters[index];
+        TestRefundCharacter(character);
+    }
+
+    /// <summary>테스트용: 캐릭터 구매 취소 및 골드 환불</summary>
+    public void TestRefundCharacter(CharacterData character)
+    {
+        if (character == null)
+        {
+            Debug.LogError("테스트: 캐릭터 데이터가 null입니다.");
+            return;
+        }
+
+        if (!IsCharacterUnlocked(character))
+        {
+            Debug.Log($"테스트: '{character.displayName}' 캐릭터는 구매하지 않았습니다.");
+            return;
+        }
+
+        // 캐릭터 잠금
+        LockCharacter(character);
+        
+        // 골드 환불
+        if (GameDataManager.Instance != null)
+        {
+            GameDataManager.Instance.RefundCharacterPurchase(character.unlockCost);
+        }
+
+        // UI 새로고침
+        RefreshShopItems();
+        UpdateShopGoldDisplay();
+        
+        Debug.Log($"테스트: '{character.displayName}' 구매 취소 완료! {character.unlockCost} 골드 환불됨");
+    }
+
+    /// <summary>테스트용: 캐릭터 잠금</summary>
+    private void LockCharacter(CharacterData character)
+    {
+        if (character != null && unlockedCharacters.Contains(character.name))
+        {
+            unlockedCharacters.Remove(character.name);
+            
+            // PlayerPrefs에서도 제거
+            string key = $"Character_Unlocked_{character.name}";
+            PlayerPrefs.DeleteKey(key);
+            PlayerPrefs.Save();
+        }
+    }
+
+    /// <summary>테스트용: 모든 구매 취소</summary>
+    public void TestRefundAllCharacters()
+    {
+        if (unlockedCharacters.Count == 0)
+        {
+            Debug.Log("테스트: 구매 취소할 캐릭터가 없습니다.");
+            return;
+        }
+
+        int totalRefund = 0;
+        var charactersToRefund = new List<string>(unlockedCharacters);
+        
+        foreach (var characterName in charactersToRefund)
+        {
+            // 상점 캐릭터 목록에서 해당 캐릭터 찾기
+            var character = System.Array.Find(shopCharacters, c => c.name == characterName);
+            if (character != null)
+            {
+                totalRefund += character.unlockCost;
+                LockCharacter(character);
+            }
+        }
+
+        // 골드 환불
+        if (GameDataManager.Instance != null)
+        {
+            GameDataManager.Instance.RefundCharacterPurchase(totalRefund);
+        }
+
+        // UI 새로고침
+        RefreshShopItems();
+        UpdateShopGoldDisplay();
+        
+        Debug.Log($"테스트: 모든 캐릭터 구매 취소 완료! 총 {totalRefund} 골드 환불됨");
     }
 
     #endregion

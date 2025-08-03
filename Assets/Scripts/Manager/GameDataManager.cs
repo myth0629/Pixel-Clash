@@ -94,6 +94,16 @@ public class GameDataManager : MonoBehaviour
         OnGoldChanged?.Invoke(currentGold);
         SaveGameData();
     }
+
+    /// <summary>테스트용: 캐릭터 구매를 취소하고 골드 환불</summary>
+    public void RefundCharacterPurchase(int refundAmount)
+    {
+        currentGold += refundAmount;
+        OnGoldChanged?.Invoke(currentGold);
+        SaveGameData();
+        
+        Debug.Log($"테스트: 캐릭터 구매 취소 - 골드 환불: +{refundAmount} (총 {currentGold})");
+    }
     #endregion
 
     #region ▶ 경험치 관리 ◀
