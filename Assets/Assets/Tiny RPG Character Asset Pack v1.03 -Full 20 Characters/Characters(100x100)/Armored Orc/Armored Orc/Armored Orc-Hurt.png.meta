@@ -46,7 +46,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -209,7 +209,11 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Armored Orc-Hurt_0: -2344653499150999987
+      Armored Orc-Hurt_1: 7793985954893747881
+      Armored Orc-Hurt_2: -878303870824504241
+      Armored Orc-Hurt_3: 3851991428545729926
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

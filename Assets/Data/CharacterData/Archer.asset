@@ -20,5 +20,5 @@ MonoBehaviour:
   hpGrowth: 1
   baseAtk: 4
   atkGrowth: 1
-  unlockCost: 1
+  unlockCost: 100
   skills: []

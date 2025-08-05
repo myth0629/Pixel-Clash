@@ -55,7 +55,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -284,7 +284,14 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Armored Orc-Attack01_0: -4391229105808040339
+      Armored Orc-Attack01_1: -2623769716515016114
+      Armored Orc-Attack01_2: -1645039322221516183
+      Armored Orc-Attack01_3: -5037064390051199659
+      Armored Orc-Attack01_4: -8369260045633568386
+      Armored Orc-Attack01_5: 3904658922933016028
+      Armored Orc-Attack01_6: 1581089029697298978
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
