@@ -46,7 +46,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -209,7 +209,11 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Knight-Block_0: 6049693126348778964
+      Knight-Block_1: -3827093537935686146
+      Knight-Block_2: -4970436974802198666
+      Knight-Block_3: -2473497153084198743
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
