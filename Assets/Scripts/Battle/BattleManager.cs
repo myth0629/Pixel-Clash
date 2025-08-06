@@ -128,18 +128,11 @@ public class BattleManager : MonoBehaviour
             Debug.LogWarning("GameUIManager.Instance가 null입니다!");
         }
         
-        // 파티가 비어있으면 백업 테스트 파티 사용
+        // 파티가 비어있으면 전투 시작하지 않음 (GameUIManager에서 이미 검증해야 함)
         if (partyInfo.Count == 0)
         {
-            Debug.LogWarning("파티가 비어있습니다. 테스트 파티로 백업합니다.");
-            partyInfo = GetTestPartyInfo();
-            
-            // 테스트 파티도 비어있으면 기본 캐릭터 생성
-            if (partyInfo.Count == 0)
-            {
-                Debug.LogError("테스트 파티도 비어있습니다! 기본 캐릭터를 생성합니다.");
-                partyInfo = CreateDefaultParty();
-            }
+            Debug.LogError("파티가 비어있습니다! 전투를 시작할 수 없습니다. GameUIManager에서 파티 구성을 확인하세요.");
+            return;
         }
         
         Debug.Log($"최종 파티 정보: {partyInfo.Count}명으로 전투 시작");

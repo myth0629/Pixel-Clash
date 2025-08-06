@@ -65,6 +65,16 @@ public class BackgroundScroller : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        // 게임이 실행 중이 아닌데 스크롤 중이면 중단
+        if (isScrolling && BattleManager.Instance != null && !BattleManager.Instance.IsBattleRunning)
+        {
+            Debug.Log($"[{gameObject.name}] 게임이 중단되어 스크롤을 정지합니다.");
+            StopScrolling();
+        }
+    }
+
     /// <summary>개선된 무한 스크롤 초기화</summary>
     private void InitializeAdvancedInfiniteScroll()
     {
@@ -152,6 +162,13 @@ public class BackgroundScroller : MonoBehaviour
     public void StartScrolling()
     {
         Debug.Log($"[{gameObject.name}] StartScrolling 호출 - isScrolling: {isScrolling}");
+        
+        // 게임이 실행 중이 아니면 스크롤 시작하지 않음
+        if (BattleManager.Instance != null && !BattleManager.Instance.IsBattleRunning)
+        {
+            Debug.Log($"[{gameObject.name}] 게임이 실행 중이 아니므로 스크롤을 시작하지 않습니다.");
+            return;
+        }
         
         if (isScrolling) return;
 
@@ -496,6 +513,13 @@ public class BackgroundScroller : MonoBehaviour
     {
         Debug.Log($"[{gameObject.name}] 스테이지 전환 시작 - Stage {stageNumber} - 배경 스크롤링 시작");
         
+        // 게임이 실행 중이 아니면 스크롤하지 않음
+        if (BattleManager.Instance != null && !BattleManager.Instance.IsBattleRunning)
+        {
+            Debug.Log($"[{gameObject.name}] 게임이 실행 중이 아니므로 스테이지 전환 스크롤을 시작하지 않습니다.");
+            return;
+        }
+        
         // 배경 레이어 확인
         if (backgroundLayers == null || backgroundLayers.Length == 0)
         {
@@ -529,6 +553,13 @@ public class BackgroundScroller : MonoBehaviour
     {
         Debug.Log($"[{gameObject.name}] 라운드 전환 시작 - Stage {stageNumber} - 배경 스크롤링 시작 (리셋 없음)");
         
+        // 게임이 실행 중이 아니면 스크롤하지 않음
+        if (BattleManager.Instance != null && !BattleManager.Instance.IsBattleRunning)
+        {
+            Debug.Log($"[{gameObject.name}] 게임이 실행 중이 아니므로 라운드 전환 스크롤을 시작하지 않습니다.");
+            return;
+        }
+        
         // 배경 레이어 확인
         if (backgroundLayers == null || backgroundLayers.Length == 0)
         {
@@ -560,6 +591,13 @@ public class BackgroundScroller : MonoBehaviour
     private void OnRoundStart(int stage, int round)
     {
         if (!scrollOnRoundStart) return;
+        
+        // 게임이 실행 중이 아니면 스크롤하지 않음
+        if (BattleManager.Instance != null && !BattleManager.Instance.IsBattleRunning)
+        {
+            Debug.Log($"[{gameObject.name}] 게임이 실행 중이 아니므로 라운드 시작 스크롤을 시작하지 않습니다.");
+            return;
+        }
         
         Debug.Log($"[{gameObject.name}] Stage {stage}-{round} 시작 - 배경 스크롤링 시작 (OnRoundStart)");
         

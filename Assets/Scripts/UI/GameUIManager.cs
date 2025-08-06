@@ -268,24 +268,14 @@ public class GameUIManager : MonoBehaviour
     {
         currentParty.Clear();
         
-        // BattleManager에서 기본 파티 정보 가져오기 (기존 테스트 파티)
-        if (BattleManager.Instance != null)
-        {
-            var testParty = BattleManager.Instance.GetTestPartyInfo();
-            foreach (var (characterData, level) in testParty)
-            {
-                if (characterData != null)
-                {
-                    currentParty.Add(characterData);
-                }
-            }
-        }
-        
-        // 파티가 비어있으면 기본값으로 채우기
+        // 파티 초기화 (빈 슬롯 2개로 시작)
+        currentParty.Clear();
         while (currentParty.Count < 2)
         {
             currentParty.Add(null); // 빈 슬롯
         }
+        
+        Debug.Log("파티 초기화 완료 - 모든 슬롯이 비어있음");
     }
 
     /// <summary>타이틀 화면 표시</summary>
@@ -486,9 +476,18 @@ public class GameUIManager : MonoBehaviour
     {
         Debug.Log("전투 시작 버튼 클릭");
         
+        // 현재 파티 상태 디버그
+        Debug.Log($"currentParty.Count: {currentParty.Count}");
+        for (int i = 0; i < currentParty.Count; i++)
+        {
+            Debug.Log($"currentParty[{i}]: {(currentParty[i]?.name ?? "null")}");
+        }
+        
         // 전방, 후방 중 최소 하나라도 캐릭터가 있는지 확인
         bool hasFrontCharacter = currentParty.Count > 0 && currentParty[0] != null;
         bool hasBackCharacter = currentParty.Count > 1 && currentParty[1] != null;
+        
+        Debug.Log($"hasFrontCharacter: {hasFrontCharacter}, hasBackCharacter: {hasBackCharacter}");
         
         if (!hasFrontCharacter && !hasBackCharacter)
         {
@@ -672,25 +671,19 @@ public class GameUIManager : MonoBehaviour
     /// <summary>기본 파티 초기화</summary>
     private void InitializeDefaultParty()
     {
-        // currentParty가 비어있고 availableCharacters가 있으면 첫 번째 캐릭터로 기본 파티 설정
-        if (currentParty.Count == 0 && availableCharacters != null && availableCharacters.Length > 0)
+        // 파티는 사용자가 직접 선택하도록 비어있는 상태로 시작
+        // currentParty가 비어있으면 빈 슬롯 2개로 초기화
+        if (currentParty.Count == 0)
         {
-            // 첫 번째 사용 가능한 캐릭터를 첫 번째 슬롯에 추가
-            var firstCharacter = availableCharacters[0];
-            if (firstCharacter != null)
+            while (currentParty.Count < 2)
             {
-                // currentParty를 적절한 크기로 초기화
-                while (currentParty.Count < 2)
-                {
-                    currentParty.Add(null);
-                }
-                
-                currentParty[0] = firstCharacter;
-                Debug.Log($"기본 파티 설정: {firstCharacter.name}");
-                
-                // UI 업데이트
-                UpdatePartyInfo();
+                currentParty.Add(null);
             }
+            
+            Debug.Log("기본 파티 초기화: 빈 슬롯 2개");
+            
+            // UI 업데이트
+            UpdatePartyInfo();
         }
     }
 
