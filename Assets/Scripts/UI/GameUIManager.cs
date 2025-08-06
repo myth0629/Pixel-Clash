@@ -88,16 +88,18 @@ public class GameUIManager : MonoBehaviour
     // 상점 관리 변수들
     private HashSet<string> unlockedCharacters = new HashSet<string>(); // 해금된 캐릭터 이름들
     private CharacterData pendingPurchaseCharacter; // 구매 대기 중인 캐릭터
+    private UIState previousUIState = UIState.Title; // 상점 열기 전 UI 상태
 
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            Debug.Log("GameUIManager 인스턴스 생성");
         }
-        else
+        else if (Instance != this)
         {
+            Debug.LogWarning($"GameUIManager 중복 생성 감지! 기존 인스턴스: {Instance.name}, 새로운 인스턴스: {this.name}");
             Destroy(gameObject);
             return;
         }
@@ -192,6 +194,75 @@ public class GameUIManager : MonoBehaviour
         InitializeParty();
     }
 
+    /// <summary>준비 화면 버튼들 설정 (상점에서 돌아올 때 이벤트 복구용)</summary>
+    private void SetupPrepareScreenButtons()
+    {
+        // 준비 화면 관련 버튼들만 다시 설정
+        if (battleStartButton != null)
+        {
+            battleStartButton.onClick.RemoveAllListeners();
+            battleStartButton.onClick.AddListener(OnBattleStartClicked);
+        }
+        
+        if (backToTitleButton != null)
+        {
+            backToTitleButton.onClick.RemoveAllListeners();
+            backToTitleButton.onClick.AddListener(OnBackToTitleClicked);
+        }
+            
+        if (closeSelectionButton != null)
+        {
+            closeSelectionButton.onClick.RemoveAllListeners();
+            closeSelectionButton.onClick.AddListener(OnCloseSelectionClicked);
+        }
+            
+        // 파티 슬롯 버튼 설정
+        if (partySlot1Button != null)
+        {
+            partySlot1Button.onClick.RemoveAllListeners();
+            partySlot1Button.onClick.AddListener(() => OnPartySlotClicked(0));
+        }
+            
+        if (partySlot2Button != null)
+        {
+            partySlot2Button.onClick.RemoveAllListeners();
+            partySlot2Button.onClick.AddListener(() => OnPartySlotClicked(1));
+        }
+
+        Debug.Log("준비 화면 버튼들 재설정 완료");
+    }
+
+    /// <summary>타이틀 화면 버튼들 설정 (상점에서 돌아올 때 이벤트 복구용)</summary>
+    private void SetupTitleScreenButtons()
+    {
+        // 타이틀 화면 관련 버튼들만 다시 설정
+        if (startGameButton != null)
+        {
+            startGameButton.onClick.RemoveAllListeners();
+            startGameButton.onClick.AddListener(OnStartGameClicked);
+        }
+        
+        if (settingsButton != null)
+        {
+            settingsButton.onClick.RemoveAllListeners();
+            settingsButton.onClick.AddListener(OnSettingsClicked);
+        }
+        
+        if (shopButton != null)
+        {
+            shopButton.onClick.RemoveAllListeners();
+            shopButton.onClick.AddListener(OnShopClicked);
+        }
+        
+        if (exitButton != null)
+        {
+            exitButton.onClick.RemoveAllListeners();
+            exitButton.onClick.AddListener(OnExitClicked);
+        }
+
+        Debug.Log("타이틀 화면 버튼들 재설정 완료");
+    }
+
     /// <summary>초기 파티 설정</summary>
     private void InitializeParty()
     {
@@ -231,6 +302,13 @@ public class GameUIManager : MonoBehaviour
         if (gameUIPanel != null)
             gameUIPanel.SetActive(false);
 
+        // 캐릭터 선택 패널 비활성화 (혹시 열려있다면)
+        if (characterSelectionPanel != null)
+            characterSelectionPanel.SetActive(false);
+
+        // 타이틀 화면 버튼들 다시 설정 (상점에서 돌아올 때 이벤트 복구)
+        SetupTitleScreenButtons();
+
         isGameStarted = false;
         Debug.Log("타이틀 화면 표시");
     }
@@ -248,6 +326,20 @@ public class GameUIManager : MonoBehaviour
 
         if (gameUIPanel != null)
             gameUIPanel.SetActive(false);
+
+        // 캐릭터 선택 패널 비활성화 (혹시 열려있다면)
+        if (characterSelectionPanel != null)
+            characterSelectionPanel.SetActive(false);
+
+        // 상점 패널 비활성화 (혹시 열려있다면)
+        if (shopPanel != null)
+            shopPanel.SetActive(false);
+
+        // 준비 화면 요소들 다시 표시 (상점에서 숨겨졌을 수도 있으므로)
+        ShowPrepareScreenElements();
+
+        // 준비 화면 버튼들 다시 설정 (상점에서 돌아올 때 이벤트 복구)
+        SetupPrepareScreenButtons();
 
         // 준비 화면 정보 업데이트
         UpdatePrepareScreenInfo();
@@ -394,20 +486,14 @@ public class GameUIManager : MonoBehaviour
     {
         Debug.Log("전투 시작 버튼 클릭");
         
-        // 파티에 캐릭터가 있는지 확인
-        bool hasCharacters = false;
-        foreach (var character in currentParty)
-        {
-            if (character != null)
-            {
-                hasCharacters = true;
-                break;
-            }
-        }
+        // 전방, 후방 중 최소 하나라도 캐릭터가 있는지 확인
+        bool hasFrontCharacter = currentParty.Count > 0 && currentParty[0] != null;
+        bool hasBackCharacter = currentParty.Count > 1 && currentParty[1] != null;
         
-        if (!hasCharacters)
+        if (!hasFrontCharacter && !hasBackCharacter)
         {
-            Debug.LogWarning("파티에 캐릭터가 없습니다. 캐릭터를 선택해주세요.");
+            Debug.LogWarning("전방 또는 후방에 최소 한 명의 캐릭터를 배치해주세요.");
+            ShowWarningMessage("전방 또는 후방에 최소 한 명의 캐릭터를 배치해주세요.");
             return;
         }
         
@@ -646,17 +732,43 @@ public class GameUIManager : MonoBehaviour
     private void OnShopClicked()
     {
         Debug.Log("상점 열기");
+        
+        // 현재 UI 상태 저장
+        previousUIState = GetCurrentUIState();
+        
         ShowShopScreen();
+    }
+
+    /// <summary>현재 활성화된 UI 상태 확인</summary>
+    private UIState GetCurrentUIState()
+    {
+        if (titlePanel != null && titlePanel.activeSelf)
+            return UIState.Title;
+        if (preparePanel != null && preparePanel.activeSelf)
+            return UIState.Prepare;
+        if (gameUIPanel != null && gameUIPanel.activeSelf)
+            return UIState.Game;
+        
+        return UIState.Title; // 기본값
     }
 
     /// <summary>상점 화면 표시</summary>
     private void ShowShopScreen()
     {
-        // 모든 패널 비활성화
+        // 타이틀과 게임 패널은 비활성화
         if (titlePanel != null) titlePanel.SetActive(false);
-        //if (preparePanel != null) preparePanel.SetActive(false);
         if (gameUIPanel != null) gameUIPanel.SetActive(false);
         if (characterSelectionPanel != null) characterSelectionPanel.SetActive(false);
+        
+        // preparePanel은 shopPanel이 내부에 있으므로 비활성화하지 않고 유지
+        // 대신 preparePanel은 활성화해야 shopPanel에 접근 가능
+        if (preparePanel != null) preparePanel.SetActive(true);
+        
+        // 준비 화면의 다른 UI 요소들 숨기기 (상점과 겹치지 않도록)
+        HidePrepareScreenElements();
+        
+        // 구매 확인 팝업도 닫기 (혹시 열려있다면)
+        if (purchaseConfirmPanel != null) purchaseConfirmPanel.SetActive(false);
 
         // 상점 패널 활성화
         if (shopPanel != null)
@@ -666,6 +778,42 @@ public class GameUIManager : MonoBehaviour
             RefreshShopItems();
             UpdateShopGoldDisplay();
         }
+        
+        Debug.Log("상점 화면 표시 - preparePanel 유지, shopPanel 활성화");
+    }
+
+    /// <summary>준비 화면 요소들 숨기기 (상점 표시 시)</summary>
+    private void HidePrepareScreenElements()
+    {
+        // 준비 화면의 주요 UI 요소들 비활성화
+        if (battleStartButton != null) battleStartButton.gameObject.SetActive(false);
+        if (backToTitleButton != null) backToTitleButton.gameObject.SetActive(false);
+        if (prepareTitleText != null) prepareTitleText.gameObject.SetActive(false);
+        if (instructionText != null) instructionText.gameObject.SetActive(false);
+        if (stageInfoText != null) stageInfoText.gameObject.SetActive(false);
+        if (difficultyText != null) difficultyText.gameObject.SetActive(false);
+        
+        // 파티 슬롯들도 숨기기
+        if (partySlot1Button != null) partySlot1Button.gameObject.SetActive(false);
+        if (partySlot2Button != null) partySlot2Button.gameObject.SetActive(false);
+        if (partyMemberContainer != null) partyMemberContainer.gameObject.SetActive(false);
+    }
+
+    /// <summary>준비 화면 요소들 다시 표시</summary>
+    private void ShowPrepareScreenElements()
+    {
+        // 준비 화면의 주요 UI 요소들 활성화
+        if (battleStartButton != null) battleStartButton.gameObject.SetActive(true);
+        if (backToTitleButton != null) backToTitleButton.gameObject.SetActive(true);
+        if (prepareTitleText != null) prepareTitleText.gameObject.SetActive(true);
+        if (instructionText != null) instructionText.gameObject.SetActive(true);
+        if (stageInfoText != null) stageInfoText.gameObject.SetActive(true);
+        if (difficultyText != null) difficultyText.gameObject.SetActive(true);
+        
+        // 파티 슬롯들도 다시 표시
+        if (partySlot1Button != null) partySlot1Button.gameObject.SetActive(true);
+        if (partySlot2Button != null) partySlot2Button.gameObject.SetActive(true);
+        if (partyMemberContainer != null) partyMemberContainer.gameObject.SetActive(true);
     }
 
     /// <summary>상점 버튼들 설정</summary>
@@ -688,6 +836,11 @@ public class GameUIManager : MonoBehaviour
         {
             cancelPurchaseButton.onClick.RemoveAllListeners();
             cancelPurchaseButton.onClick.AddListener(OnCancelPurchase);
+            Debug.Log("취소 버튼 이벤트 설정 완료 - OnCancelPurchase");
+        }
+        else
+        {
+            Debug.LogWarning("cancelPurchaseButton이 null입니다!");
         }
 
         // 구매 확인 팝업 초기 상태 설정
@@ -705,10 +858,30 @@ public class GameUIManager : MonoBehaviour
     /// <summary>상점 닫기</summary>
     private void CloseShop()
     {
+        Debug.Log("상점 닫기 버튼 클릭 - 이전 화면으로 이동");
+        
         if (shopPanel != null)
             shopPanel.SetActive(false);
         
-        ShowTitleScreen();
+        // 구매 확인 팝업도 닫기
+        ClosePurchaseConfirmPopup();
+        
+        // 이전 UI 상태로 돌아가기
+        switch (previousUIState)
+        {
+            case UIState.Title:
+                ShowTitleScreen();
+                break;
+            case UIState.Prepare:
+                ShowPrepareScreen();
+                break;
+            case UIState.Game:
+                ShowGameUI();
+                break;
+            default:
+                ShowTitleScreen();
+                break;
+        }
     }
 
     /// <summary>상점 아이템 목록 새로고침</summary>
@@ -722,12 +895,50 @@ public class GameUIManager : MonoBehaviour
             Destroy(child.gameObject);
         }
 
-        // 상점 캐릭터들을 순회하며 아이템 생성
-        foreach (var character in shopCharacters)
+        // 상점 캐릭터들을 정렬하여 아이템 생성
+        var sortedCharacters = GetSortedShopCharacters();
+        foreach (var character in sortedCharacters)
         {
             if (character == null) continue;
             CreateShopCharacterItem(character);
         }
+    }
+
+    /// <summary>상점 캐릭터들을 정렬된 순서로 반환 (소유하지 않은 캐릭터 가격 오름차순)</summary>
+    private CharacterData[] GetSortedShopCharacters()
+    {
+        if (shopCharacters == null) return new CharacterData[0];
+
+        // 소유하지 않은 캐릭터와 소유한 캐릭터 분리
+        var unownedCharacters = new List<CharacterData>();
+        var ownedCharacters = new List<CharacterData>();
+
+        foreach (var character in shopCharacters)
+        {
+            if (character == null) continue;
+
+            if (IsCharacterUnlocked(character))
+            {
+                ownedCharacters.Add(character);
+            }
+            else
+            {
+                unownedCharacters.Add(character);
+            }
+        }
+
+        // 소유하지 않은 캐릭터들을 가격 오름차순으로 정렬 (저렴한 것부터)
+        unownedCharacters.Sort((a, b) => a.unlockCost.CompareTo(b.unlockCost));
+
+        // 소유한 캐릭터들은 원래 순서 유지 (또는 원하는 다른 정렬 기준 적용 가능)
+        ownedCharacters.Sort((a, b) => string.Compare(a.displayName, b.displayName));
+
+        // 소유하지 않은 캐릭터를 먼저 표시하고, 그 다음 소유한 캐릭터 표시
+        var result = new List<CharacterData>();
+        result.AddRange(unownedCharacters);
+        result.AddRange(ownedCharacters);
+
+        return result.ToArray();
     }
 
     /// <summary>상점 캐릭터 아이템 생성</summary>
@@ -767,6 +978,8 @@ public class GameUIManager : MonoBehaviour
     {
         if (character == null || purchaseConfirmPanel == null) return;
 
+        Debug.Log($"구매 확인 팝업 표시: {character.displayName}");
+
         // 캐릭터 정보 표시
         if (confirmCharacterNameText != null)
             confirmCharacterNameText.text = character.displayName;
@@ -789,6 +1002,8 @@ public class GameUIManager : MonoBehaviour
 
         // 팝업 표시
         purchaseConfirmPanel.SetActive(true);
+        
+        Debug.Log("구매 확인 팝업 활성화 완료");
     }
 
     /// <summary>구매 확인 버튼 클릭</summary>
@@ -824,16 +1039,88 @@ public class GameUIManager : MonoBehaviour
     /// <summary>구매 취소 버튼 클릭</summary>
     private void OnCancelPurchase()
     {
+        Debug.Log("구매 취소 버튼 클릭 - 팝업만 닫기");
         ClosePurchaseConfirmPopup();
+        // 상점은 그대로 유지하고 팝업만 닫기
     }
 
     /// <summary>구매 확인 팝업 닫기</summary>
     private void ClosePurchaseConfirmPopup()
     {
+        Debug.Log("구매 확인 팝업 닫기");
+        
         if (purchaseConfirmPanel != null)
             purchaseConfirmPanel.SetActive(false);
 
+        // UI 요소들을 원래 상태로 복원
+        if (confirmCharacterNameText != null)
+            confirmCharacterNameText.gameObject.SetActive(true);
+
+        if (confirmPriceText != null)
+            confirmPriceText.gameObject.SetActive(true);
+
+        if (confirmCharacterIcon != null)
+            confirmCharacterIcon.gameObject.SetActive(true);
+
+        if (cancelPurchaseButton != null)
+            cancelPurchaseButton.gameObject.SetActive(true);
+
+        // 구매 확인 버튼 리스너 복원
+        if (confirmPurchaseButton != null)
+        {
+            confirmPurchaseButton.onClick.RemoveAllListeners();
+            confirmPurchaseButton.onClick.AddListener(OnConfirmPurchase);
+        }
+
         pendingPurchaseCharacter = null;
+    }
+
+    /// <summary>경고 메시지 표시</summary>
+    private void ShowWarningMessage(string message)
+    {
+        if (purchaseConfirmPanel == null) return;
+
+        Debug.Log($"경고 메시지 표시: {message}");
+
+        // 캐릭터 관련 UI 숨기기
+        if (confirmCharacterNameText != null)
+            confirmCharacterNameText.gameObject.SetActive(false);
+
+        if (confirmPriceText != null)
+            confirmPriceText.gameObject.SetActive(false);
+
+        if (confirmCharacterIcon != null)
+            confirmCharacterIcon.gameObject.SetActive(false);
+
+        // 메시지 표시
+        if (confirmMessageText != null)
+            confirmMessageText.text = message;
+
+        // 확인 버튼만 활성화 (구매 대신 닫기 용도)
+        if (confirmPurchaseButton != null)
+        {
+            confirmPurchaseButton.interactable = true;
+            confirmPurchaseButton.onClick.RemoveAllListeners();
+            confirmPurchaseButton.onClick.AddListener(() => {
+                purchaseConfirmPanel.SetActive(false);
+                // 캐릭터 관련 UI 다시 표시
+                if (confirmCharacterNameText != null)
+                    confirmCharacterNameText.gameObject.SetActive(true);
+                if (confirmPriceText != null)
+                    confirmPriceText.gameObject.SetActive(true);
+                if (confirmCharacterIcon != null)
+                    confirmCharacterIcon.gameObject.SetActive(true);
+            });
+        }
+
+        // 취소 버튼 숨기기
+        if (cancelPurchaseButton != null)
+            cancelPurchaseButton.gameObject.SetActive(false);
+
+        // 팝업 표시
+        purchaseConfirmPanel.SetActive(true);
+        
+        Debug.Log("경고 메시지 팝업 활성화 완료");
     }
 
     /// <summary>캐릭터 해금</summary>

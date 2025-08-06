@@ -458,7 +458,7 @@ public class BattleManager : MonoBehaviour
 
     public void Restart()
     {
-        SceneManager.LoadScene("BattleScene");
+        SceneManager.LoadScene("Main");
     }
 
     /// <summary>테스트 파티 정보 반환 (StageManager용)</summary>

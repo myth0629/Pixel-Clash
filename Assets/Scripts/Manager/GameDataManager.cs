@@ -30,15 +30,16 @@ public class GameDataManager : MonoBehaviour
 
     private void Awake()
     {
-        // 싱글톤 패턴
+        // 단일 씬 게임이므로 DontDestroyOnLoad 제거
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
             LoadGameData();
+            Debug.Log("GameDataManager 인스턴스 생성");
         }
         else
         {
+            Debug.LogWarning("GameDataManager 중복 생성 감지!");
             Destroy(gameObject);
         }
     }

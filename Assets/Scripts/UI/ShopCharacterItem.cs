@@ -15,6 +15,7 @@ public class ShopCharacterItem : MonoBehaviour
     [SerializeField] private Button purchaseButton;
     [SerializeField] private GameObject lockedOverlay;  // 잠금 상태 오버레이
     [SerializeField] private GameObject unlockedIndicator;  // 해금 상태 표시
+    [SerializeField] private Image backgroundImage;  // 배경 이미지 (보유 중일 때 어둡게 만들기 위함)
 
     private CharacterData characterData;
     private bool isUnlocked;
@@ -82,6 +83,44 @@ public class ShopCharacterItem : MonoBehaviour
         if (unlockedIndicator != null)
             unlockedIndicator.SetActive(unlocked);
 
+        // 배경 색상 변경 (보유 중인 캐릭터는 어둡게)
+        if (backgroundImage != null)
+        {
+            if (unlocked)
+            {
+                // 보유 중인 캐릭터: 어두운 배경
+                backgroundImage.color = new Color(0.5f, 0.5f, 0.5f, 0.8f); // 회색으로 어둡게
+            }
+            else
+            {
+                // 미보유 캐릭터: 기본 배경
+                backgroundImage.color = Color.white;
+            }
+        }
+
+        // 캐릭터 아이콘과 텍스트 색상도 조정
+        Color contentColor = unlocked ? new Color(0.7f, 0.7f, 0.7f, 1f) : Color.white;
+        
+        if (characterIcon != null)
+        {
+            characterIcon.color = contentColor;
+        }
+        
+        if (characterNameText != null)
+        {
+            characterNameText.color = contentColor;
+        }
+        
+        if (characterStatsText != null)
+        {
+            characterStatsText.color = contentColor;
+        }
+        
+        if (priceText != null)
+        {
+            priceText.color = contentColor;
+        }
+
         // 구매 버튼 상태
         if (purchaseButton != null)
         {
@@ -89,10 +128,10 @@ public class ShopCharacterItem : MonoBehaviour
             
             // 버튼 텍스트 변경
             TMPro.TextMeshProUGUI buttonText = purchaseButton.GetComponentInChildren<TMPro.TextMeshProUGUI>();
-            if (buttonText != null)
-            {
-                buttonText.text = unlocked ? "보유 중" : "구매";
-            }
+            // if (buttonText != null)
+            // {
+            //     buttonText.text = unlocked ? "보유 중" : "구매";
+            // }
         }
 
         // 골드 부족 체크
