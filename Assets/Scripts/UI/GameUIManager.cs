@@ -14,8 +14,7 @@ public class GameUIManager : MonoBehaviour
     [SerializeField] private GameObject titlePanel;
     [SerializeField] private Button startGameButton;
     [SerializeField] private Button settingsButton;
-    [SerializeField] private Button shopButton;  // 상점 버튼 추가
-    [SerializeField] private Button exitButton;
+   
 
     [Header("준비 화면")]
     [SerializeField] private GameObject preparePanel;
@@ -25,6 +24,7 @@ public class GameUIManager : MonoBehaviour
     [SerializeField] private TMPro.TextMeshProUGUI instructionText;
     [SerializeField] private TMPro.TextMeshProUGUI stageInfoText;
     [SerializeField] private TMPro.TextMeshProUGUI difficultyText;
+    [SerializeField] private TMPro.TextMeshProUGUI prepareGoldText; // 준비 화면 골드 표시
     [SerializeField] private Transform partyMemberContainer;
     [SerializeField] private GameObject partyMemberPrefab;
     
@@ -44,12 +44,19 @@ public class GameUIManager : MonoBehaviour
     [SerializeField] private CharacterData[] availableCharacters; // 선택 가능한 캐릭터들
 
     [Header("상점")]
+     [SerializeField] private Button shopButton;
     [SerializeField] private GameObject shopPanel; // 상점 패널
     [SerializeField] private Transform shopCharacterContainer; // 상점 캐릭터 리스트 컨테이너 (Scroll View의 Content)
     [SerializeField] private GameObject shopCharacterItemPrefab; // 상점 캐릭터 아이템 프리팹
     [SerializeField] private Button closeShopButton; // 상점 닫기 버튼
-    [SerializeField] private TMPro.TextMeshProUGUI shopGoldText; // 상점에서 보여줄 골드 텍스트
     [SerializeField] private CharacterData[] shopCharacters; // 상점에서 판매할 캐릭터들
+    
+    [Header("업그레이드")]
+    [SerializeField] private Button upgradeButton; // 업그레이드 버튼
+    [SerializeField] private GameObject upgradePanel; // 업그레이드 패널
+    [SerializeField] private Transform upgradeCharacterContainer; // 업그레이드 캐릭터 리스트 컨테이너 (Scroll View의 Content)
+    [SerializeField] private GameObject upgradeCharacterItemPrefab; // 업그레이드 캐릭터 아이템 프리팹
+    [SerializeField] private Button closeUpgradeButton; // 업그레이드 닫기 버튼
     
     [Header("테스트 기능")]
     [SerializeField] private Button testRefundButton; // 테스트용 구매 취소 버튼
@@ -89,6 +96,10 @@ public class GameUIManager : MonoBehaviour
     private HashSet<string> unlockedCharacters = new HashSet<string>(); // 해금된 캐릭터 이름들
     private CharacterData pendingPurchaseCharacter; // 구매 대기 중인 캐릭터
     private UIState previousUIState = UIState.Title; // 상점 열기 전 UI 상태
+    
+    // 업그레이드 관리 변수들
+    private Dictionary<string, int> characterLevels = new Dictionary<string, int>(); // 캐릭터별 레벨 (name -> level)
+    private CharacterData pendingUpgradeCharacter; // 업그레이드 대기 중인 캐릭터
 
     private void Awake()
     {
@@ -110,6 +121,7 @@ public class GameUIManager : MonoBehaviour
         SetupButtons();
         InitializeDefaultParty(); // 기본 파티 설정
         LoadUnlockedCharacters(); // 해금된 캐릭터 로드
+        LoadCharacterLevels(); // 캐릭터 레벨 로드
         
         // 골드 변경 이벤트 구독
         if (GameDataManager.Instance != null)
@@ -138,8 +150,13 @@ public class GameUIManager : MonoBehaviour
         // 상점이 열려있으면 골드 표시 업데이트
         if (shopPanel != null && shopPanel.activeSelf)
         {
-            UpdateShopGoldDisplay();
             RefreshShopItemsAffordability();
+        }
+        
+        // 준비 화면이 활성화되어 있으면 골드 표시 업데이트
+        if (preparePanel != null && preparePanel.activeSelf)
+        {
+            UpdatePrepareGoldDisplay();
         }
     }
 
@@ -171,8 +188,8 @@ public class GameUIManager : MonoBehaviour
         if (shopButton != null)
             shopButton.onClick.AddListener(OnShopClicked);
         
-        if (exitButton != null)
-            exitButton.onClick.AddListener(OnExitClicked);
+        if (upgradeButton != null)
+            upgradeButton.onClick.AddListener(OnUpgradeClicked);
 
         if (battleStartButton != null)
             battleStartButton.onClick.AddListener(OnBattleStartClicked);
@@ -253,12 +270,6 @@ public class GameUIManager : MonoBehaviour
             shopButton.onClick.RemoveAllListeners();
             shopButton.onClick.AddListener(OnShopClicked);
         }
-        
-        if (exitButton != null)
-        {
-            exitButton.onClick.RemoveAllListeners();
-            exitButton.onClick.AddListener(OnExitClicked);
-        }
 
         Debug.Log("타이틀 화면 버튼들 재설정 완료");
     }
@@ -296,6 +307,14 @@ public class GameUIManager : MonoBehaviour
         if (characterSelectionPanel != null)
             characterSelectionPanel.SetActive(false);
 
+        // 상점 패널 비활성화 (혹시 열려있다면)
+        if (shopPanel != null)
+            shopPanel.SetActive(false);
+
+        // 업그레이드 패널 비활성화 (혹시 열려있다면)
+        if (upgradePanel != null)
+            upgradePanel.SetActive(false);
+
         // 타이틀 화면 버튼들 다시 설정 (상점에서 돌아올 때 이벤트 복구)
         SetupTitleScreenButtons();
 
@@ -325,6 +344,10 @@ public class GameUIManager : MonoBehaviour
         if (shopPanel != null)
             shopPanel.SetActive(false);
 
+        // 업그레이드 패널 비활성화 (혹시 열려있다면)
+        if (upgradePanel != null)
+            upgradePanel.SetActive(false);
+
         // 준비 화면 요소들 다시 표시 (상점에서 숨겨졌을 수도 있으므로)
         ShowPrepareScreenElements();
 
@@ -333,6 +356,9 @@ public class GameUIManager : MonoBehaviour
 
         // 준비 화면 정보 업데이트
         UpdatePrepareScreenInfo();
+
+        // 골드 표시 업데이트
+        UpdatePrepareGoldDisplay();
 
         isGameStarted = false;
         Debug.Log("준비 화면 표시");
@@ -364,28 +390,6 @@ public class GameUIManager : MonoBehaviour
             
             if (stageInfoText != null)
                 stageInfoText.text = $"Stage {stageManager.CurrentStage}-{stageManager.CurrentRound}";
-
-            if (difficultyText != null)
-            {
-                string difficulty = GetDifficultyText(stageManager.CurrentStage);
-                difficultyText.text = $"난이도: {difficulty}";
-            }
-        }
-    }
-
-    /// <summary>스테이지에 따른 난이도 텍스트 반환</summary>
-    private string GetDifficultyText(int stage)
-    {
-        switch (stage)
-        {
-            case 1: return "쉬움";
-            case 2:
-            case 3: return "보통";
-            case 4:
-            case 5: return "어려움";
-            case 6:
-            case 7: return "매우 어려움";
-            default: return "극한";
         }
     }
 
@@ -449,6 +453,18 @@ public class GameUIManager : MonoBehaviour
 
         if (gameUIPanel != null)
             gameUIPanel.SetActive(true);
+
+        // 캐릭터 선택 패널 비활성화 (혹시 열려있다면)
+        if (characterSelectionPanel != null)
+            characterSelectionPanel.SetActive(false);
+
+        // 상점 패널 비활성화 (혹시 열려있다면)
+        if (shopPanel != null)
+            shopPanel.SetActive(false);
+
+        // 업그레이드 패널 비활성화 (혹시 열려있다면)
+        if (upgradePanel != null)
+            upgradePanel.SetActive(false);
 
         // 추가 게임 UI 활성화
         if (gameUIElements != null)
@@ -594,7 +610,7 @@ public class GameUIManager : MonoBehaviour
     {
         var buttonObj = Instantiate(characterSelectButtonPrefab, availableCharactersContainer);
         var button = buttonObj.GetComponent<Button>();
-        
+
         if (button != null)
         {
             button.onClick.AddListener(() => OnCharacterSelected(character));
@@ -609,7 +625,7 @@ public class GameUIManager : MonoBehaviour
         if (iconImage != null && character.icon != null)
         {
             iconImage.sprite = character.icon;
-            
+
             // 이미지 비율 유지 설정
             iconImage.preserveAspect = true;
             iconImage.type = Image.Type.Simple;
@@ -621,7 +637,7 @@ public class GameUIManager : MonoBehaviour
     {
         var buttonObj = Instantiate(characterSelectButtonPrefab, availableCharactersContainer);
         var button = buttonObj.GetComponent<Button>();
-        
+
         if (button != null)
         {
             button.onClick.AddListener(() => OnCharacterSelected(null));
@@ -631,6 +647,16 @@ public class GameUIManager : MonoBehaviour
         var nameText = buttonObj.transform.Find("IconContainer/NameText")?.GetComponent<TMPro.TextMeshProUGUI>();
         if (nameText != null)
             nameText.text = "빈 슬롯";
+            
+        var iconImage = buttonObj.transform.Find("IconContainer/Icon")?.GetComponent<UnityEngine.UI.Image>();
+        if (iconImage != null)
+        {   
+            iconImage.sprite = null; // 스프라이트 제거
+            // 투명하게 만들기
+            var color = iconImage.color;
+            color.a = 0f;
+            iconImage.color = color;
+        }
     }
 
     /// <summary>캐릭터 선택 완료</summary>
@@ -732,6 +758,17 @@ public class GameUIManager : MonoBehaviour
         ShowShopScreen();
     }
 
+    /// <summary>업그레이드 버튼 클릭</summary>
+    private void OnUpgradeClicked()
+    {
+        Debug.Log("업그레이드 열기");
+        
+        // 현재 UI 상태 저장
+        previousUIState = GetCurrentUIState();
+        
+        ShowUpgradeScreen();
+    }
+
     /// <summary>현재 활성화된 UI 상태 확인</summary>
     private UIState GetCurrentUIState()
     {
@@ -753,6 +790,9 @@ public class GameUIManager : MonoBehaviour
         if (gameUIPanel != null) gameUIPanel.SetActive(false);
         if (characterSelectionPanel != null) characterSelectionPanel.SetActive(false);
         
+        // 업그레이드 패널 비활성화 (혹시 열려있다면)
+        if (upgradePanel != null) upgradePanel.SetActive(false);
+        
         // preparePanel은 shopPanel이 내부에 있으므로 비활성화하지 않고 유지
         // 대신 preparePanel은 활성화해야 shopPanel에 접근 가능
         if (preparePanel != null) preparePanel.SetActive(true);
@@ -769,10 +809,40 @@ public class GameUIManager : MonoBehaviour
             shopPanel.SetActive(true);
             SetupShopButtons();
             RefreshShopItems();
-            UpdateShopGoldDisplay();
         }
         
         Debug.Log("상점 화면 표시 - preparePanel 유지, shopPanel 활성화");
+    }
+
+    /// <summary>업그레이드 화면 표시</summary>
+    private void ShowUpgradeScreen()
+    {
+        // 타이틀과 게임 패널은 비활성화
+        if (titlePanel != null) titlePanel.SetActive(false);
+        if (gameUIPanel != null) gameUIPanel.SetActive(false);
+        if (characterSelectionPanel != null) characterSelectionPanel.SetActive(false);
+        
+        // 상점 패널 비활성화 (혹시 열려있다면)
+        if (shopPanel != null) shopPanel.SetActive(false);
+        
+        // preparePanel은 upgradePanel이 내부에 있으므로 비활성화하지 않고 유지
+        if (preparePanel != null) preparePanel.SetActive(true);
+        
+        // 준비 화면의 다른 UI 요소들 숨기기 (업그레이드와 겹치지 않도록)
+        HidePrepareScreenElements();
+        
+        // 구매 확인 팝업도 닫기 (혹시 열려있다면)
+        if (purchaseConfirmPanel != null) purchaseConfirmPanel.SetActive(false);
+
+        // 업그레이드 패널 활성화
+        if (upgradePanel != null)
+        {
+            upgradePanel.SetActive(true);
+            SetupUpgradeButtons();
+            RefreshUpgradeItems();
+        }
+        
+        Debug.Log("업그레이드 화면 표시 - preparePanel 유지, upgradePanel 활성화");
     }
 
     /// <summary>준비 화면 요소들 숨기기 (상점 표시 시)</summary>
@@ -848,6 +918,33 @@ public class GameUIManager : MonoBehaviour
         }
     }
 
+    /// <summary>업그레이드 버튼들 설정</summary>
+    private void SetupUpgradeButtons()
+    {
+        if (closeUpgradeButton != null)
+        {
+            closeUpgradeButton.onClick.RemoveAllListeners();
+            closeUpgradeButton.onClick.AddListener(CloseUpgrade);
+        }
+
+        // 구매 확인 팝업 버튼들 설정 (업그레이드 확인용으로 재사용)
+        if (confirmPurchaseButton != null)
+        {
+            confirmPurchaseButton.onClick.RemoveAllListeners();
+            confirmPurchaseButton.onClick.AddListener(OnConfirmUpgrade);
+        }
+
+        if (cancelPurchaseButton != null)
+        {
+            cancelPurchaseButton.onClick.RemoveAllListeners();
+            cancelPurchaseButton.onClick.AddListener(OnCancelUpgrade);
+        }
+
+        // 구매 확인 팝업 초기 상태 설정
+        if (purchaseConfirmPanel != null)
+            purchaseConfirmPanel.SetActive(false);
+    }
+
     /// <summary>상점 닫기</summary>
     private void CloseShop()
     {
@@ -875,6 +972,236 @@ public class GameUIManager : MonoBehaviour
                 ShowTitleScreen();
                 break;
         }
+    }
+
+    /// <summary>업그레이드 닫기</summary>
+    private void CloseUpgrade()
+    {
+        Debug.Log("업그레이드 닫기 버튼 클릭 - 이전 화면으로 이동");
+        
+        if (upgradePanel != null)
+            upgradePanel.SetActive(false);
+        
+        // 구매 확인 팝업도 닫기
+        ClosePurchaseConfirmPopup();
+        
+        // 이전 UI 상태로 돌아가기
+        switch (previousUIState)
+        {
+            case UIState.Title:
+                ShowTitleScreen();
+                break;
+            case UIState.Prepare:
+                ShowPrepareScreen();
+                break;
+            case UIState.Game:
+                ShowGameUI();
+                break;
+            default:
+                ShowTitleScreen();
+                break;
+        }
+    }
+
+    /// <summary>업그레이드 아이템 목록 새로고침</summary>
+    private void RefreshUpgradeItems()
+    {
+        if (upgradeCharacterContainer == null || upgradeCharacterItemPrefab == null)
+        {
+            Debug.LogWarning("upgradeCharacterContainer 또는 upgradeCharacterItemPrefab이 null입니다!");
+            return;
+        }
+
+        // 기존 아이템들 제거
+        foreach (Transform child in upgradeCharacterContainer)
+        {
+            Destroy(child.gameObject);
+        }
+
+        // 보유 중인 캐릭터들만 표시
+        var ownedCharacters = GetOwnedCharacters();
+        
+        foreach (var character in ownedCharacters)
+        {
+            GameObject itemObj = Instantiate(upgradeCharacterItemPrefab, upgradeCharacterContainer);
+            UpgradeCharacterItem item = itemObj.GetComponent<UpgradeCharacterItem>();
+            
+            if (item != null)
+            {
+                int currentLevel = GetCharacterLevel(character);
+                item.SetupItem(character, currentLevel, this);
+            }
+        }
+
+        Debug.Log($"업그레이드 아이템 새로고침: {ownedCharacters.Count}개 캐릭터 표시");
+    }
+
+    /// <summary>보유 중인 캐릭터 목록 반환</summary>
+    private List<CharacterData> GetOwnedCharacters()
+    {
+        List<CharacterData> ownedCharacters = new List<CharacterData>();
+        
+        if (availableCharacters != null)
+        {
+            foreach (var character in availableCharacters)
+            {
+                if (character != null && IsCharacterUnlocked(character))
+                {
+                    ownedCharacters.Add(character);
+                }
+            }
+        }
+        
+        return ownedCharacters;
+    }
+
+    /// <summary>캐릭터 레벨 반환</summary>
+    public int GetCharacterLevel(CharacterData character)
+    {
+        if (character == null) return 1;
+        
+        if (characterLevels.ContainsKey(character.name))
+        {
+            return characterLevels[character.name];
+        }
+        
+        return 1; // 기본 레벨
+    }
+
+    /// <summary>캐릭터 레벨 설정</summary>
+    public void SetCharacterLevel(CharacterData character, int level)
+    {
+        if (character == null) return;
+        
+        characterLevels[character.name] = Mathf.Max(1, level);
+        SaveCharacterLevels();
+    }
+
+    /// <summary>캐릭터 레벨업 비용 계산</summary>
+    public int GetUpgradeCost(CharacterData character, int currentLevel)
+    {
+        if (character == null) return 0;
+        
+        // 레벨업 비용 공식: 기본값 + (현재레벨 * 50)
+        int baseCost = 100;
+        return baseCost + (currentLevel * 50);
+    }
+
+    /// <summary>캐릭터 레벨 데이터 저장</summary>
+    private void SaveCharacterLevels()
+    {
+        foreach (var kvp in characterLevels)
+        {
+            PlayerPrefs.SetInt($"CharacterLevel_{kvp.Key}", kvp.Value);
+        }
+        PlayerPrefs.Save();
+    }
+
+    /// <summary>캐릭터 레벨 데이터 로드</summary>
+    private void LoadCharacterLevels()
+    {
+        characterLevels.Clear();
+        
+        if (availableCharacters != null)
+        {
+            foreach (var character in availableCharacters)
+            {
+                if (character != null)
+                {
+                    int level = PlayerPrefs.GetInt($"CharacterLevel_{character.name}", 1);
+                    characterLevels[character.name] = level;
+                }
+            }
+        }
+    }
+
+    /// <summary>업그레이드 확인 버튼 클릭</summary>
+    private void OnConfirmUpgrade()
+    {
+        if (pendingUpgradeCharacter == null)
+        {
+            Debug.LogWarning("업그레이드할 캐릭터가 선택되지 않았습니다.");
+            return;
+        }
+
+        int currentLevel = GetCharacterLevel(pendingUpgradeCharacter);
+        int upgradeCost = GetUpgradeCost(pendingUpgradeCharacter, currentLevel);
+
+        if (GameDataManager.Instance != null && GameDataManager.Instance.SpendGold(upgradeCost))
+        {
+            // 레벨업 실행
+            SetCharacterLevel(pendingUpgradeCharacter, currentLevel + 1);
+            
+            Debug.Log($"{pendingUpgradeCharacter.displayName} 레벨업: {currentLevel} → {currentLevel + 1}, 비용: {upgradeCost} 골드");
+            
+            // UI 새로고침
+            RefreshUpgradeItems();
+        }
+        else
+        {
+            Debug.LogWarning("골드가 부족합니다.");
+        }
+
+        // 팝업 닫기
+        ClosePurchaseConfirmPopup();
+        pendingUpgradeCharacter = null;
+    }
+
+    /// <summary>업그레이드 취소 버튼 클릭</summary>
+    private void OnCancelUpgrade()
+    {
+        Debug.Log("업그레이드 취소 버튼 클릭 - 팝업만 닫기");
+        ClosePurchaseConfirmPopup();
+        pendingUpgradeCharacter = null;
+    }
+
+    /// <summary>캐릭터 업그레이드 요청 (UpgradeCharacterItem에서 호출)</summary>
+    public void OnUpgradeCharacter(CharacterData character)
+    {
+        if (character == null) return;
+
+        Debug.Log($"캐릭터 업그레이드 요청: {character.displayName}");
+
+        pendingUpgradeCharacter = character;
+        
+        // 업그레이드 확인 팝업 표시
+        ShowUpgradeConfirmPopup(character);
+    }
+
+    /// <summary>업그레이드 확인 팝업 표시</summary>
+    private void ShowUpgradeConfirmPopup(CharacterData character)
+    {
+        if (character == null || purchaseConfirmPanel == null) return;
+
+        Debug.Log($"업그레이드 확인 팝업 표시: {character.displayName}");
+
+        int currentLevel = GetCharacterLevel(character);
+        int upgradeCost = GetUpgradeCost(character, currentLevel);
+
+        // 캐릭터 정보 표시
+        if (confirmCharacterNameText != null)
+            confirmCharacterNameText.text = $"{character.displayName} (Lv.{currentLevel})";
+
+        if (confirmPriceText != null)
+            confirmPriceText.text = $"{upgradeCost} 골드";
+
+        if (confirmCharacterIcon != null && character.icon != null)
+            confirmCharacterIcon.sprite = character.icon;
+
+        if (confirmMessageText != null)
+            confirmMessageText.text = $"'{character.displayName}'를 레벨 {currentLevel + 1}로 업그레이드하시겠습니까?";
+
+        // 골드 부족 체크
+        bool canAfford = GameDataManager.Instance != null && 
+                        GameDataManager.Instance.CurrentGold >= upgradeCost;
+        
+        if (confirmPurchaseButton != null)
+            confirmPurchaseButton.interactable = canAfford;
+
+        // 팝업 표시
+        purchaseConfirmPanel.SetActive(true);
+        
+        Debug.Log("업그레이드 확인 팝업 활성화 완료");
     }
 
     /// <summary>상점 아이템 목록 새로고침</summary>
@@ -1016,7 +1343,6 @@ public class GameUIManager : MonoBehaviour
             
             // UI 새로고침
             RefreshShopItems();
-            UpdateShopGoldDisplay();
             
             Debug.Log($"캐릭터 '{pendingPurchaseCharacter.name}' 구매 완료! (가격: {price} 골드)");
         }
@@ -1132,12 +1458,12 @@ public class GameUIManager : MonoBehaviour
         return unlockedCharacters.Contains(character.name);
     }
 
-    /// <summary>상점 골드 표시 업데이트</summary>
-    private void UpdateShopGoldDisplay()
+    /// <summary>준비 화면 골드 표시 업데이트</summary>
+    private void UpdatePrepareGoldDisplay()
     {
-        if (shopGoldText != null && GameDataManager.Instance != null)
+        if (prepareGoldText != null && GameDataManager.Instance != null)
         {
-            shopGoldText.text = $"{GameDataManager.Instance.GetFormattedGold()} G";
+            prepareGoldText.text = $"{GameDataManager.Instance.GetFormattedGold()} G";
         }
     }
 
@@ -1273,7 +1599,6 @@ public class GameUIManager : MonoBehaviour
 
         // UI 새로고침
         RefreshShopItems();
-        UpdateShopGoldDisplay();
         
         Debug.Log($"테스트: '{character.displayName}' 구매 취소 완료! {character.unlockCost} 골드 환불됨");
     }
@@ -1323,7 +1648,6 @@ public class GameUIManager : MonoBehaviour
 
         // UI 새로고침
         RefreshShopItems();
-        UpdateShopGoldDisplay();
         
         Debug.Log($"테스트: 모든 캐릭터 구매 취소 완료! 총 {totalRefund} 골드 환불됨");
     }

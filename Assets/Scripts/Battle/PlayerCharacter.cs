@@ -54,14 +54,15 @@ public class PlayerCharacter : CharacterBase
     
     protected override void Update()
     {
-        // 공격 가능 상태가 아니면 공격하지 않음
+        // 공격 가능 상태가 아니면 공격하지 않음 (라운드 전환 중이거나 전투 시작 전)
         if (!canAttack)
             return;
         
-        // BattleManager 상태 확인
+        // BattleManager 상태 확인 (전투 중이 아니면 공격하지 않음)
         if (!BattleManager.Instance.IsBattleRunning)
         {
-            Debug.LogWarning($"[{gameObject.name}] BattleManager.IsBattleRunning이 false입니다!");
+            // canAttack이 true인데 IsBattleRunning이 false면 비정상 상태
+            Debug.LogWarning($"[{gameObject.name}] 전투 가능 상태이지만 BattleManager.IsBattleRunning이 false입니다!");
             return;
         }
             
@@ -149,6 +150,17 @@ public class PlayerCharacter : CharacterBase
     public void StartNewRound()
     {
         canAttack = false;
-        Debug.Log($"[{gameObject.name}] 새로운 라운드 준비 - BattleManager 딜레이 대기 중");
+        
+        // 체력 완전 회복
+        FullHeal();
+        
+        Debug.Log($"[{gameObject.name}] 새로운 라운드 준비 - 체력 회복 완료, BattleManager 딜레이 대기 중");
+    }
+    
+    /// <summary>전투 중지 (라운드 완료 시 호출)</summary>
+    public void StopCombat()
+    {
+        canAttack = false;
+        Debug.Log($"[{gameObject.name}] 전투 중지 - 라운드 완료");
     }
 }

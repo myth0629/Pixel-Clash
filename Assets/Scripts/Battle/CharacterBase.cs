@@ -55,6 +55,25 @@ public abstract class CharacterBase : MonoBehaviour
         if (currentHp == 0)
             Die();
     }
+    
+    /// <summary>체력 회복</summary>
+    public virtual void Heal(int amount)
+    {
+        currentHp = Mathf.Min(maxHp, currentHp + amount);
+        OnHealthChanged?.Invoke(currentHp, maxHp);
+        Debug.Log($"[{gameObject.name}] 체력 회복: {amount}, 현재 HP: {currentHp}/{maxHp}");
+    }
+    
+    /// <summary>체력 완전 회복</summary>
+    public virtual void FullHeal()
+    {
+        currentHp = maxHp;
+        OnHealthChanged?.Invoke(currentHp, maxHp);
+        Debug.Log($"[{gameObject.name}] 체력 완전 회복: {currentHp}/{maxHp}");
+    }
+    
+    /// <summary>사망 여부 확인</summary>
+    public bool IsDead => currentHp <= 0;
 
     // ---------- 추상 / 가상 ----------
     protected abstract void TryAttack();

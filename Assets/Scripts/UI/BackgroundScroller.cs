@@ -67,11 +67,22 @@ public class BackgroundScroller : MonoBehaviour
 
     private void Update()
     {
-        // 게임이 실행 중이 아닌데 스크롤 중이면 중단
+        // 라운드 전환 중이거나 스테이지 전환 중이면 스크롤 중단 체크 안함
+        if (isStageTransition)
+        {
+            return;
+        }
+        
+        // 게임이 실행 중이 아닌데 스크롤 중이면 중단 (단, 라운드 전환 상황은 예외)
         if (isScrolling && BattleManager.Instance != null && !BattleManager.Instance.IsBattleRunning)
         {
-            Debug.Log($"[{gameObject.name}] 게임이 중단되어 스크롤을 정지합니다.");
-            StopScrolling();
+            // StageManager가 있고 라운드 전환 과정이 아닌 경우에만 중단
+            if (StageManager.Instance == null)
+            {
+                Debug.Log($"[{gameObject.name}] 게임이 중단되어 스크롤을 정지합니다.");
+                StopScrolling();
+            }
+            // StageManager가 있으면 라운드 전환 과정일 수 있으므로 스크롤 유지
         }
     }
 
@@ -161,10 +172,17 @@ public class BackgroundScroller : MonoBehaviour
     /// <summary>배경 스크롤링 시작</summary>
     public void StartScrolling()
     {
-        Debug.Log($"[{gameObject.name}] StartScrolling 호출 - isScrolling: {isScrolling}");
+        StartScrolling(false);
+    }
+    
+    /// <summary>배경 스크롤링 시작</summary>
+    /// <param name="forceStart">true면 BattleManager 상태와 무관하게 강제 시작</param>
+    public void StartScrolling(bool forceStart)
+    {
+        Debug.Log($"[{gameObject.name}] StartScrolling 호출 - isScrolling: {isScrolling}, forceStart: {forceStart}");
         
-        // 게임이 실행 중이 아니면 스크롤 시작하지 않음
-        if (BattleManager.Instance != null && !BattleManager.Instance.IsBattleRunning)
+        // 게임이 실행 중이 아니면 스크롤 시작하지 않음 (강제 시작이 아닌 경우만)
+        if (!forceStart && BattleManager.Instance != null && !BattleManager.Instance.IsBattleRunning)
         {
             Debug.Log($"[{gameObject.name}] 게임이 실행 중이 아니므로 스크롤을 시작하지 않습니다.");
             return;
@@ -551,54 +569,21 @@ public class BackgroundScroller : MonoBehaviour
     /// <summary>라운드 전환 시작 시 호출 (배경 리셋 없음)</summary>
     private void OnRoundTransitionStart(int stageNumber)
     {
-        Debug.Log($"[{gameObject.name}] 라운드 전환 시작 - Stage {stageNumber} - 배경 스크롤링 시작 (리셋 없음)");
+        Debug.Log($"[{gameObject.name}] 라운드 전환 시작 - Stage {stageNumber} - 배경 스크롤 없이 진행");
         
-        // 게임이 실행 중이 아니면 스크롤하지 않음
-        if (BattleManager.Instance != null && !BattleManager.Instance.IsBattleRunning)
-        {
-            Debug.Log($"[{gameObject.name}] 게임이 실행 중이 아니므로 라운드 전환 스크롤을 시작하지 않습니다.");
-            return;
-        }
+        // 라운드 전환 시에는 배경 스크롤 없이 진행
+        // 단순히 새로운 적만 등장하도록 처리
         
-        // 배경 레이어 확인
-        if (backgroundLayers == null || backgroundLayers.Length == 0)
-        {
-            Debug.LogWarning($"[{gameObject.name}] backgroundLayers가 설정되지 않았습니다!");
-            return;
-        }
+        // 라운드 전환 플래그 설정 (전환 중이므로 Update에서 스크롤 중단 체크 안함)
+        isStageTransition = true;
         
-        Debug.Log($"[{gameObject.name}] 배경 레이어 개수: {backgroundLayers.Length}");
-        
-        // 라운드 전환 플래그 설정 (스테이지 전환이 아님)
-        isStageTransition = false;
-        
-        // 라운드 전환 시에는 배경 위치 리셋 없이 바로 스크롤 시작
-        StartScrolling();
-        
-        // 지정된 시간 후 자동으로 정지
-        if (scrollDuration > 0)
-        {
-            // 기존 자동 정지 코루틴이 있다면 정리
-            if (autoStopCoroutine != null)
-            {
-                StopCoroutine(autoStopCoroutine);
-            }
-            autoStopCoroutine = StartCoroutine(AutoStopAfterDuration());
-        }
+        // 라운드 전환은 즉시 완료 (별도 처리 없음)
+        Debug.Log($"[{gameObject.name}] 라운드 전환 - 배경 스크롤 없이 바로 진행");
     }
 
     /// <summary>라운드 시작 시 호출</summary>
     private void OnRoundStart(int stage, int round)
     {
-        if (!scrollOnRoundStart) return;
-        
-        // 게임이 실행 중이 아니면 스크롤하지 않음
-        if (BattleManager.Instance != null && !BattleManager.Instance.IsBattleRunning)
-        {
-            Debug.Log($"[{gameObject.name}] 게임이 실행 중이 아니므로 라운드 시작 스크롤을 시작하지 않습니다.");
-            return;
-        }
-        
         Debug.Log($"[{gameObject.name}] Stage {stage}-{round} 시작 - 배경 스크롤링 시작 (OnRoundStart)");
         
         // 배경 레이어 확인
@@ -613,7 +598,7 @@ public class BackgroundScroller : MonoBehaviour
         // 라운드 시작 플래그 설정 (스테이지 전환이 아님)
         isStageTransition = false;
         
-        StartScrolling();
+        StartScrolling(true); // 라운드 시작 시 강제 스크롤
         
         // 라운드 시작 시에도 자동 정지 (스크롤 완료 이벤트 발생)
         if (autoStopCoroutine != null)

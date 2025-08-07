@@ -100,20 +100,6 @@ public class BattleManager : MonoBehaviour
     /// <summary>GameUIManager에서 설정한 파티로 전투 시작</summary>
     public void StartBattleWithUIParty(int waveEnemyCount = 3)
     {
-        // 기존 플레이어들이 있다면 새로운 라운드로 간주
-        bool isNewRound = _players.Count > 0;
-        if (isNewRound)
-        {
-            Debug.Log("새로운 라운드 시작 - 플레이어들을 전투 준비 상태로 설정");
-            foreach (var player in _players)
-            {
-                if (player != null)
-                {
-                    player.StartNewRound();
-                }
-            }
-        }
-        
         List<(CharacterData, int)> partyInfo;
         
         // GameUIManager에서 파티 정보 가져오기
@@ -137,9 +123,25 @@ public class BattleManager : MonoBehaviour
         
         Debug.Log($"최종 파티 정보: {partyInfo.Count}명으로 전투 시작");
         
+        // 기존 플레이어들이 있다면 새로운 라운드로 간주
+        bool isNewRound = _players.Count > 0;
         if (isNewRound)
         {
-            // 새로운 라운드면 적들만 제거하고 플레이어는 유지
+            Debug.Log("새로운 라운드 시작 - 죽은 캐릭터 부활 및 체력 회복");
+            
+            // 기존 살아있는 플레이어들 체력 회복
+            foreach (var player in _players)
+            {
+                if (player != null)
+                {
+                    player.StartNewRound();
+                }
+            }
+            
+            // 죽은 캐릭터들 부활 (파티 정보와 현재 플레이어 비교)
+            ReviveDeadCharacters(partyInfo);
+            
+            // 적들만 제거하고 새로운 웨이브 생성
             ClearEnemiesOnly();
             SpawnWave(waveEnemyCount);
             IsBattleRunning = true;  // 새로운 라운드에서 전투 상태 활성화
@@ -238,6 +240,52 @@ public class BattleManager : MonoBehaviour
             }
         }
         _enemies.Clear();
+    }
+
+    /// <summary>죽은 캐릭터들을 부활시킴</summary>
+    private void ReviveDeadCharacters(List<(CharacterData, int)> partyInfo)
+    {
+        // 현재 살아있는 플레이어들의 CharacterData 확인
+        var aliveCharacterDatas = new HashSet<CharacterData>();
+        foreach (var player in _players)
+        {
+            if (player != null && player.data != null)
+            {
+                aliveCharacterDatas.Add(player.data);
+            }
+        }
+        
+        // 파티 정보에 있지만 현재 없는 캐릭터들을 부활시킴
+        for (int slotIndex = 0; slotIndex < partyInfo.Count; slotIndex++)
+        {
+            var (characterData, level) = partyInfo[slotIndex];
+            
+            if (characterData != null && !aliveCharacterDatas.Contains(characterData))
+            {
+                Debug.Log($"캐릭터 부활: {characterData.displayName} (레벨 {level})");
+                
+                // 캐릭터 부활 (새로 생성) - SpawnPlayers와 동일한 방식
+                var go = Instantiate(characterData.prefab, playerSpawnRoot);
+                
+                // 전방/후방 배치 로직
+                bool isFrontRow = slotIndex == 0;
+                float xOffset = isFrontRow ? 0f : -playerCharacterSpacing;
+                go.transform.localPosition = new Vector3(xOffset, 0, 0);
+                
+                var pc = go.AddComponent<PlayerCharacter>();
+                pc.Setup(characterData, level);
+                
+                // 체력바 생성
+                var bar = Instantiate(healthBarPrefab, uiRoot);
+                bar.Init(pc);
+                _healthBars.Add(bar);
+                
+                pc.OnDeath += OnPlayerDead;
+                _players.Add(pc);
+                
+                Debug.Log($"[{pc.gameObject.name}] 부활 완료 - 포지션: {(isFrontRow ? "전방" : "후방")}");
+            }
+        }
     }
 
     private void SpawnPlayers(List<(CharacterData, int)> party)
@@ -419,8 +467,18 @@ public class BattleManager : MonoBehaviour
         _enemies.Remove(enemy as Enemy);
         if (_enemies.Count == 0)
         {
-            // 웨이브 종료 → 보상 지급
+            // 웨이브 종료 → 전투 상태 종료 및 플레이어 공격 중지
             IsBattleRunning = false;
+            
+            // 모든 플레이어들의 공격 중지 (라운드 전환 준비)
+            foreach (var player in _players)
+            {
+                if (player != null && player is PlayerCharacter pc)
+                {
+                    pc.StopCombat();
+                }
+            }
+            
             Debug.Log("Wave Clear! 보상 지급 & 다음 스테이지 로딩");
             
             // StageManager에 라운드 완료 알림

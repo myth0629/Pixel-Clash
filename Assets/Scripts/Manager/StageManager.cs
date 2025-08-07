@@ -159,20 +159,16 @@ public class StageManager : MonoBehaviour
         Debug.Log($"OnRoundTransitionStart 이벤트 발생: {currentStage} (라운드 {currentRound})");
         OnRoundTransitionStart?.Invoke(currentStage);
         
-        // 2. 스크롤 완료 대기 상태로 설정
-        isWaitingForScrollComplete = true;
-        Debug.Log("배경 스크롤 완료 대기 중... (라운드 전환)");
+        // 2. 라운드 전환은 스크롤 대기 없이 바로 진행 (전투 상태가 아니므로 스크롤이 동작하지 않음)
+        Debug.Log("라운드 전환 - 스크롤 대기 생략하고 바로 진행");
         
-        // 3. 스크롤이 완료될 때까지 대기
-        while (isWaitingForScrollComplete)
-        {
-            yield return null; // 한 프레임 대기
-        }
+        // 잠깐 대기 후 진행 (UI 업데이트를 위해)
+        yield return new WaitForSeconds(0.5f);
         
-        // 4. 라운드 전환 완료
+        // 3. 라운드 전환 완료
         Debug.Log($"=== 라운드 전환 완료: {currentStage}-{currentRound} 시작 ===");
         
-        // 5. 다음 라운드 시작 (OnRoundStart 이벤트 발생으로 Round Text 표시)
+        // 4. 다음 라운드 시작 (OnRoundStart 이벤트 발생으로 Round Text 표시)
         Debug.Log($"Stage {currentStage}-{currentRound} 전투 시작!");
         
         // OnRoundStart 이벤트 발생 (Round Text 표시를 위해)
