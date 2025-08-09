@@ -15,6 +15,10 @@ public class UpgradeCharacterItem : MonoBehaviour
     [SerializeField] private Button upgradeButton;
     [SerializeField] private Image backgroundImage;
     [SerializeField] private GameObject maxLevelIndicator; // 최대 레벨 표시
+    
+    [Header("스탯 표시")]
+    [SerializeField] private TextMeshProUGUI currentAttackText; // 현재 공격력 표시
+    [SerializeField] private TextMeshProUGUI currentHealthText; // 현재 체력 표시
 
     [Header("레벨업 설정")]
     [SerializeField] private int maxLevel = 10; // 최대 레벨
@@ -42,6 +46,18 @@ public class UpgradeCharacterItem : MonoBehaviour
         Debug.Log($"UpgradeCharacterItem 설정: {character.displayName}, 레벨: {level}");
     }
 
+    /// <summary>캐릭터의 현재 레벨 기준 스탯 계산</summary>
+    private (int hp, int atk) CalculateCharacterStats(CharacterData characterData, int level)
+    {
+        if (characterData == null) return (0, 0);
+        
+        // PlayerCharacter.Setup()와 동일한 계산 방식 사용
+        int hp = Mathf.RoundToInt(characterData.baseHp * (1 + level * characterData.hpGrowth));
+        int atk = Mathf.RoundToInt(characterData.baseAtk * (1 + level * characterData.atkGrowth));
+        
+        return (hp, atk);
+    }
+
     /// <summary>UI 상태 업데이트</summary>
     private void UpdateUIState()
     {
@@ -58,6 +74,17 @@ public class UpgradeCharacterItem : MonoBehaviour
         // 현재 레벨 표시
         if (currentLevelText != null)
             currentLevelText.text = $"Lv.{currentLevel}";
+
+        // 캐릭터 스탯 계산 및 표시
+        var (currentHp, currentAtk) = CalculateCharacterStats(characterData, currentLevel);
+        
+        // 공격력 표시
+        if (currentAttackText != null)
+            currentAttackText.text = $"{currentAtk}";
+            
+        // 체력 표시
+        if (currentHealthText != null)
+            currentHealthText.text = $"{currentHp}";
 
         // 최대 레벨 체크
         bool isMaxLevel = currentLevel >= maxLevel;

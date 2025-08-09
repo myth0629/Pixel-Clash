@@ -100,6 +100,10 @@ public class GameUIManager : MonoBehaviour
     // 업그레이드 관리 변수들
     private Dictionary<string, int> characterLevels = new Dictionary<string, int>(); // 캐릭터별 레벨 (name -> level)
     private CharacterData pendingUpgradeCharacter; // 업그레이드 대기 중인 캐릭터
+    
+    // 팝업 컨텍스트 관리
+    private enum PopupContext { Shop, Upgrade }
+    private PopupContext currentPopupContext = PopupContext.Shop;
 
     private void Awake()
     {
@@ -411,8 +415,9 @@ public class GameUIManager : MonoBehaviour
         if (character != null)
         {
             // 캐릭터가 있는 경우
+            int characterLevel = GetCharacterLevel(character);
             if (nameText != null)
-                nameText.text = $"{character.name} Lv.1";
+                nameText.text = $"{character.displayName} (Lv.{characterLevel})";
                 
             if (iconImage != null && character.icon != null)
             {
@@ -687,7 +692,9 @@ public class GameUIManager : MonoBehaviour
         {
             if (character != null)
             {
-                partyInfo.Add((character, 1)); // 레벨은 기본 1로 설정
+                // 실제 업그레이드된 레벨 사용
+                int characterLevel = GetCharacterLevel(character);
+                partyInfo.Add((character, characterLevel));
             }
         }
         
@@ -1175,6 +1182,9 @@ public class GameUIManager : MonoBehaviour
 
         Debug.Log($"업그레이드 확인 팝업 표시: {character.displayName}");
 
+        // 팝업 컨텍스트를 업그레이드로 설정
+        currentPopupContext = PopupContext.Upgrade;
+
         int currentLevel = GetCharacterLevel(character);
         int upgradeCost = GetUpgradeCost(character, currentLevel);
 
@@ -1300,6 +1310,9 @@ public class GameUIManager : MonoBehaviour
 
         Debug.Log($"구매 확인 팝업 표시: {character.displayName}");
 
+        // 팝업 컨텍스트를 상점으로 설정
+        currentPopupContext = PopupContext.Shop;
+
         // 캐릭터 정보 표시
         if (confirmCharacterNameText != null)
             confirmCharacterNameText.text = character.displayName;
@@ -1384,11 +1397,21 @@ public class GameUIManager : MonoBehaviour
         if (cancelPurchaseButton != null)
             cancelPurchaseButton.gameObject.SetActive(true);
 
-        // 구매 확인 버튼 리스너 복원
+        // 구매 확인 버튼 리스너 복원 - 컨텍스트에 따라 올바른 리스너 설정
         if (confirmPurchaseButton != null)
         {
             confirmPurchaseButton.onClick.RemoveAllListeners();
-            confirmPurchaseButton.onClick.AddListener(OnConfirmPurchase);
+            
+            // 현재 컨텍스트에 따라 적절한 리스너 연결
+            switch (currentPopupContext)
+            {
+                case PopupContext.Shop:
+                    confirmPurchaseButton.onClick.AddListener(OnConfirmPurchase);
+                    break;
+                case PopupContext.Upgrade:
+                    confirmPurchaseButton.onClick.AddListener(OnConfirmUpgrade);
+                    break;
+            }
         }
 
         pendingPurchaseCharacter = null;
