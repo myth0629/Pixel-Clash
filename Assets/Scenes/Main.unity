@@ -2244,6 +2244,7 @@ MonoBehaviour:
   monsterDataList:
   - {fileID: 11400000, guid: 0b9f5be3c03344aa3a5c787a2e3eed53, type: 2}
   - {fileID: 11400000, guid: 9939cfbe3c6234c87b2d4a17677234a2, type: 2}
+  - {fileID: 11400000, guid: bed7e3e5f6a72445ea8f3bc465d59f91, type: 2}
   battleStartDelay: 2
   healthBarPrefab: {fileID: 4526279226287500771, guid: c6887d393265346ca962273b5461d898, type: 3}
   uiRoot: {fileID: 1013079399}

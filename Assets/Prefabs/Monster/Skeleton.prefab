@@ -8,6 +8,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 346770416970336435, guid: 06d1bb602ab5147e6b23f4c43c7a6115, type: 3}
+      propertyPath: m_Size.x
+      value: 0.28
+      objectReference: {fileID: 0}
+    - target: {fileID: 346770416970336435, guid: 06d1bb602ab5147e6b23f4c43c7a6115, type: 3}
+      propertyPath: m_Size.y
+      value: 0.17
+      objectReference: {fileID: 0}
+    - target: {fileID: 346770416970336435, guid: 06d1bb602ab5147e6b23f4c43c7a6115, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 303854554312539980, guid: ac15cb10fb6364d2a8fa9f2cdc4aa05a, type: 3}
+    - target: {fileID: 346770416970336435, guid: 06d1bb602ab5147e6b23f4c43c7a6115, type: 3}
+      propertyPath: m_WasSpriteAssigned
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5796733930892475232, guid: 06d1bb602ab5147e6b23f4c43c7a6115, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 7b0411e0253fa4a7ba6e97c841c9e7b6, type: 2}
     - target: {fileID: 6011719536577820083, guid: 06d1bb602ab5147e6b23f4c43c7a6115, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -48,9 +68,13 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6206773600141004607, guid: 06d1bb602ab5147e6b23f4c43c7a6115, type: 3}
+      propertyPath: m_Name
+      value: Skeleton
+      objectReference: {fileID: 0}
     - target: {fileID: 7830232458973669189, guid: 06d1bb602ab5147e6b23f4c43c7a6115, type: 3}
       propertyPath: m_Name
-      value: Monster Prefab
+      value: Skeleton
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
