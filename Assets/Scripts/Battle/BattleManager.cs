@@ -512,6 +512,26 @@ public class BattleManager : MonoBehaviour
         SceneManager.LoadScene("Main");
     }
 
+    /// <summary>
+    /// 전투 강제 중지 및 정리 (UI에서 준비 화면으로 돌아갈 때 사용)
+    /// </summary>
+    public void AbortBattle()
+    {
+        // 플레이어 전투 중지 시그널
+        foreach (var player in _players)
+        {
+            if (player != null)
+            {
+                player.StopCombat();
+            }
+        }
+
+        // 상태 플래그 해제 및 전체 정리
+        IsBattleRunning = false;
+        ClearBattle();
+        Debug.Log("BattleManager: 전투 강제 중지 및 정리 완료");
+    }
+
     /// <summary>테스트 파티 정보 반환 (StageManager용)</summary>
     public System.Collections.Generic.List<(CharacterData, int)> GetTestPartyInfo()
     {

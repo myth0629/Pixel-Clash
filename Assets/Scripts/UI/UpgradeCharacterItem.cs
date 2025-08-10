@@ -63,9 +63,12 @@ public class UpgradeCharacterItem : MonoBehaviour
     {
         if (characterData == null) return;
 
-        // 캐릭터 이름 표시
+        // 캐릭터 이름 표시 (+ 포지션 배지)
         if (characterNameText != null)
-            characterNameText.text = characterData.displayName;
+        {
+            string baseName = string.IsNullOrEmpty(characterData.displayName) ? characterData.name : characterData.displayName;
+            characterNameText.text = baseName + GetPositionBadge(characterData.position);
+        }
 
         // 캐릭터 아이콘 표시
         if (characterIcon != null && characterData.icon != null)
@@ -176,6 +179,19 @@ public class UpgradeCharacterItem : MonoBehaviour
         {
             currentLevel = gameUIManager.GetCharacterLevel(characterData);
             UpdateUIState();
+        }
+    }
+
+    /// <summary>
+    /// 전방/후방 배지 문자열 반환
+    /// </summary>
+    private string GetPositionBadge(PositionType pos)
+    {
+        switch (pos)
+        {
+            case PositionType.Front: return " <color=#FFD700>[전방]</color>";
+            case PositionType.Back:  return " <color=#FFD700>[후방]</color>";
+            default: return string.Empty;
         }
     }
 }

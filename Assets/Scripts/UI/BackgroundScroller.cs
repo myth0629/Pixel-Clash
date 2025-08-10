@@ -531,13 +531,6 @@ public class BackgroundScroller : MonoBehaviour
     {
         Debug.Log($"[{gameObject.name}] 스테이지 전환 시작 - Stage {stageNumber} - 배경 스크롤링 시작");
         
-        // 게임이 실행 중이 아니면 스크롤하지 않음
-        if (BattleManager.Instance != null && !BattleManager.Instance.IsBattleRunning)
-        {
-            Debug.Log($"[{gameObject.name}] 게임이 실행 중이 아니므로 스테이지 전환 스크롤을 시작하지 않습니다.");
-            return;
-        }
-        
         // 배경 레이어 확인
         if (backgroundLayers == null || backgroundLayers.Length == 0)
         {
@@ -552,7 +545,8 @@ public class BackgroundScroller : MonoBehaviour
         
         // 스테이지 전환 시에는 배경 위치 리셋 후 스크롤 시작
         ResetPositions();
-        StartScrolling();
+    // 전투 진행 상태와 무관하게 강제로 스크롤 시작 (스테이지 전환 완료 신호 필요)
+    StartScrolling(true);
         
         // 지정된 시간 후 자동으로 정지
         if (scrollDuration > 0)

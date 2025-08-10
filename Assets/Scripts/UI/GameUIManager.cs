@@ -75,6 +75,12 @@ public class GameUIManager : MonoBehaviour
     [SerializeField] private GameObject gameUIPanel;
     [SerializeField] private GameObject[] gameUIElements; // 게임 중 활성화할 UI들
 
+    [Header("게임 메뉴 (일시정지)")]
+    [SerializeField] private Button gameMenuButton; // 배틀 씬 메뉴 버튼
+    [SerializeField] private GameObject pausePanel; // 일시정지 팝업 패널
+    [SerializeField] private Button pauseResumeButton; // 계속하기 버튼
+    [SerializeField] private Button pauseBackToTitleButton; // 타이틀로 버튼
+
     [Header("설정")]
     [SerializeField] private bool showTitleOnStart = true;
 
@@ -87,6 +93,7 @@ public class GameUIManager : MonoBehaviour
 
     private UIState currentState = UIState.Title;
     private bool isGameStarted = false;
+    private bool isPaused = false;
     
     // 파티 관리 변수들
     private int selectedSlotIndex = -1; // 현재 선택 중인 파티 슬롯 (-1이면 선택 안됨)
@@ -195,6 +202,22 @@ public class GameUIManager : MonoBehaviour
         if (upgradeButton != null)
             upgradeButton.onClick.AddListener(OnUpgradeClicked);
 
+        // 게임 UI(배틀) 메뉴/일시정지 관련 버튼들
+        if (gameMenuButton != null)
+            gameMenuButton.onClick.AddListener(OnGameMenuButtonClicked);
+
+        if (pauseResumeButton != null)
+        {
+            pauseResumeButton.onClick.RemoveAllListeners();
+            pauseResumeButton.onClick.AddListener(OnPauseResumeClicked);
+        }
+
+        if (pauseBackToTitleButton != null)
+        {
+            pauseBackToTitleButton.onClick.RemoveAllListeners();
+            pauseBackToTitleButton.onClick.AddListener(OnPauseBackToTitleClicked);
+        }
+
         if (battleStartButton != null)
             battleStartButton.onClick.AddListener(OnBattleStartClicked);
         
@@ -297,6 +320,12 @@ public class GameUIManager : MonoBehaviour
     public void ShowTitleScreen()
     {
         currentState = UIState.Title;
+        // 일시정지 해제 보장
+        if (isPaused)
+        {
+            Time.timeScale = 1f;
+            isPaused = false;
+        }
         
         if (titlePanel != null)
             titlePanel.SetActive(true);
@@ -319,6 +348,10 @@ public class GameUIManager : MonoBehaviour
         if (upgradePanel != null)
             upgradePanel.SetActive(false);
 
+        // 일시정지 패널 비활성화
+        if (pausePanel != null)
+            pausePanel.SetActive(false);
+
         // 타이틀 화면 버튼들 다시 설정 (상점에서 돌아올 때 이벤트 복구)
         SetupTitleScreenButtons();
 
@@ -330,6 +363,12 @@ public class GameUIManager : MonoBehaviour
     public void ShowPrepareScreen()
     {
         currentState = UIState.Prepare;
+        // 일시정지 해제 보장
+        if (isPaused)
+        {
+            Time.timeScale = 1f;
+            isPaused = false;
+        }
         
         if (titlePanel != null)
             titlePanel.SetActive(false);
@@ -351,6 +390,10 @@ public class GameUIManager : MonoBehaviour
         // 업그레이드 패널 비활성화 (혹시 열려있다면)
         if (upgradePanel != null)
             upgradePanel.SetActive(false);
+
+        // 일시정지 패널 비활성화
+        if (pausePanel != null)
+            pausePanel.SetActive(false);
 
         // 준비 화면 요소들 다시 표시 (상점에서 숨겨졌을 수도 있으므로)
         ShowPrepareScreenElements();
@@ -471,6 +514,12 @@ public class GameUIManager : MonoBehaviour
         if (upgradePanel != null)
             upgradePanel.SetActive(false);
 
+        // 게임 진입 시 일시정지 해제 및 패널 숨김
+        Time.timeScale = 1f;
+        isPaused = false;
+        if (pausePanel != null)
+            pausePanel.SetActive(false);
+
         // 추가 게임 UI 활성화
         if (gameUIElements != null)
         {
@@ -483,6 +532,58 @@ public class GameUIManager : MonoBehaviour
 
         isGameStarted = true;
         Debug.Log("게임 UI 표시 - 전투 시작");
+    }
+
+    /// <summary>배틀 메뉴 버튼 클릭 → 일시정지</summary>
+    private void OnGameMenuButtonClicked()
+    {
+        if (currentState != UIState.Game) return;
+        PauseGame();
+    }
+
+    /// <summary>게임 일시정지</summary>
+    private void PauseGame()
+    {
+        if (isPaused) return;
+        isPaused = true;
+        Time.timeScale = 0f; // 전체 게임 일시정지
+        if (pausePanel != null)
+            pausePanel.SetActive(true);
+        Debug.Log("게임 일시정지 - 일시정지 팝업 활성화");
+    }
+
+    /// <summary>게임 재개</summary>
+    private void ResumeGame()
+    {
+        if (!isPaused) return;
+        isPaused = false;
+        Time.timeScale = 1f;
+        if (pausePanel != null)
+            pausePanel.SetActive(false);
+        Debug.Log("게임 재개 - 일시정지 팝업 비활성화");
+    }
+
+    private void OnPauseResumeClicked()
+    {
+        ResumeGame();
+    }
+
+    private void OnPauseBackToTitleClicked()
+    {
+        // 전투 중지 후 준비 화면으로 복귀
+        Time.timeScale = 1f;
+        isPaused = false;
+        if (pausePanel != null)
+            pausePanel.SetActive(false);
+
+        // 배틀 정리
+        if (BattleManager.Instance != null)
+        {
+            BattleManager.Instance.AbortBattle();
+        }
+
+        // 준비 화면 표시
+        ShowPrepareScreen();
     }
 
     #region 버튼 이벤트 핸들러
@@ -602,7 +703,11 @@ public class GameUIManager : MonoBehaviour
         {
             if (character != null)
             {
-                CreateCharacterSelectButton(character);
+                // 전방/후방 슬롯 역할에 맞는 캐릭터만 표시
+                if (IsCharacterAllowedInSlot(character, selectedSlotIndex))
+                {
+                    CreateCharacterSelectButton(character);
+                }
             }
         }
 
@@ -624,7 +729,10 @@ public class GameUIManager : MonoBehaviour
         // 이름으로 정확히 찾기
         var nameText = buttonObj.transform.Find("IconContainer/NameText")?.GetComponent<TMPro.TextMeshProUGUI>();
         if (nameText != null)
-            nameText.text = character.name;
+        {
+            string display = string.IsNullOrEmpty(character.displayName) ? character.name : character.displayName;
+            nameText.text = display;
+        }
 
         var iconImage = buttonObj.transform.Find("IconContainer/Icon")?.GetComponent<UnityEngine.UI.Image>();
         if (iconImage != null && character.icon != null)
@@ -667,6 +775,19 @@ public class GameUIManager : MonoBehaviour
     /// <summary>캐릭터 선택 완료</summary>
     private void OnCharacterSelected(CharacterData selectedCharacter)
     {
+        // 슬롯 역할 검증 (전방/후방)
+        if (selectedCharacter != null && !IsCharacterAllowedInSlot(selectedCharacter, selectedSlotIndex))
+        {
+            // 잘못된 배치 시 경고 후 리턴 (선택창은 유지)
+            if (selectedSlotIndex == 0)
+                ShowWarningMessage("전방 슬롯에는 '전방' 캐릭터만 배치할 수 있습니다.");
+            else if (selectedSlotIndex == 1)
+                ShowWarningMessage("후방 슬롯에는 '후방' 캐릭터만 배치할 수 있습니다.");
+            else
+                ShowWarningMessage("해당 슬롯에는 이 캐릭터를 배치할 수 없습니다.");
+            return;
+        }
+
         if (selectedSlotIndex >= 0 && selectedSlotIndex < currentParty.Count)
         {
             currentParty[selectedSlotIndex] = selectedCharacter;
@@ -675,6 +796,26 @@ public class GameUIManager : MonoBehaviour
             
             Debug.Log($"슬롯 {selectedSlotIndex}에 {(selectedCharacter?.name ?? "빈 슬롯")} 배치");
         }
+    }
+
+    /// <summary>슬롯 인덱스에 맞는 캐릭터인지 검사 (0: 전방, 1: 후방)</summary>
+    private bool IsCharacterAllowedInSlot(CharacterData character, int slotIndex)
+    {
+        if (character == null) return true; // 빈 슬롯 허용
+        if (slotIndex < 0) return true;     // 방어적 처리: 슬롯 미지정 시 통과
+
+        // 0번 슬롯 = 전방 전용, 1번 슬롯 = 후방 전용
+        if (slotIndex == 0)
+        {
+            return character.position == PositionType.Front;
+        }
+        if (slotIndex == 1)
+        {
+            return character.position == PositionType.Back;
+        }
+
+        // 그 외 슬롯이 생길 경우 확장성을 위해 모두 허용
+        return true;
     }
 
     /// <summary>선택창 닫기 버튼 클릭</summary>
@@ -1046,20 +1187,20 @@ public class GameUIManager : MonoBehaviour
     /// <summary>보유 중인 캐릭터 목록 반환</summary>
     private List<CharacterData> GetOwnedCharacters()
     {
-        List<CharacterData> ownedCharacters = new List<CharacterData>();
-        
-        if (availableCharacters != null)
+        var owned = new List<CharacterData>();
+        var seen = new HashSet<string>();
+
+        foreach (var character in GetAllCharacters())
         {
-            foreach (var character in availableCharacters)
+            if (character == null) continue;
+            if (!seen.Add(character.name)) continue;
+            if (IsCharacterUnlocked(character))
             {
-                if (character != null && IsCharacterUnlocked(character))
-                {
-                    ownedCharacters.Add(character);
-                }
+                owned.Add(character);
             }
         }
-        
-        return ownedCharacters;
+
+        return owned;
     }
 
     /// <summary>캐릭터 레벨 반환</summary>
@@ -1108,16 +1249,13 @@ public class GameUIManager : MonoBehaviour
     private void LoadCharacterLevels()
     {
         characterLevels.Clear();
-        
-        if (availableCharacters != null)
+
+        foreach (var character in GetAllCharacters())
         {
-            foreach (var character in availableCharacters)
+            if (character != null)
             {
-                if (character != null)
-                {
-                    int level = PlayerPrefs.GetInt($"CharacterLevel_{character.name}", 1);
-                    characterLevels[character.name] = level;
-                }
+                int level = PlayerPrefs.GetInt($"CharacterLevel_{character.name}", 1);
+                characterLevels[character.name] = level;
             }
         }
     }
@@ -1526,18 +1664,44 @@ public class GameUIManager : MonoBehaviour
     /// <summary>해금된 캐릭터만 반환 (파티 선택에서 사용)</summary>
     public CharacterData[] GetUnlockedCharacters()
     {
-        if (availableCharacters == null) return new CharacterData[0];
-        
         List<CharacterData> unlocked = new List<CharacterData>();
-        foreach (var character in availableCharacters)
+        var seen = new HashSet<string>();
+
+        foreach (var character in GetAllCharacters())
         {
-            if (character != null && IsCharacterUnlocked(character))
+            if (character == null) continue;
+            if (!seen.Add(character.name)) continue;
+            if (IsCharacterUnlocked(character))
             {
                 unlocked.Add(character);
             }
         }
-        
+
         return unlocked.ToArray();
+    }
+
+    /// <summary>사용 가능한 모든 캐릭터(파티 선택/상점)를 합친 열거자</summary>
+    private IEnumerable<CharacterData> GetAllCharacters()
+    {
+        var seen = new HashSet<string>();
+
+        if (availableCharacters != null)
+        {
+            foreach (var c in availableCharacters)
+            {
+                if (c == null) continue;
+                if (seen.Add(c.name)) yield return c;
+            }
+        }
+
+        if (shopCharacters != null)
+        {
+            foreach (var c in shopCharacters)
+            {
+                if (c == null) continue;
+                if (seen.Add(c.name)) yield return c;
+            }
+        }
     }
 
     #endregion

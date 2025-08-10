@@ -11,13 +11,20 @@ public class CharacterWalkAnimation : MonoBehaviour
     [SerializeField] private float walkBobSpeed = 2f;     // 상하 움직임 속도
     [SerializeField] private float walkBobAmount = 0.1f;  // 상하 움직임 크기 (X 위치는 전투 위치 고정)
 
+    [Header("재생 시간 설정")]
+    [Tooltip("true면 지정된 시간(walkDuration) 후 자동으로 걷기 애니메이션을 정지합니다.")]
+    [SerializeField] private bool autoStopOnDuration = true;
+    [Tooltip("걷기 애니메이션을 재생할 시간(초)")]
+    [SerializeField] private float walkDuration = 1.5f;
+
     [Header("애니메이터 설정")]
     [SerializeField] private Animator animator;
     [SerializeField] private string walkStateName = "IsWalk"; // 걷기 Bool 파라미터명
 
-    private Vector3 originalPosition;
+    private Vector3 originalPosition; // 원래 위치 저장
     private bool isWalking = false;
     private Coroutine walkCoroutine;
+    private Coroutine autoStopCoroutine;
 
     private void Awake()
     {
@@ -33,6 +40,10 @@ public class CharacterWalkAnimation : MonoBehaviour
         Debug.Log($"[{gameObject.name}] StageManager 이벤트 구독");
         StageManager.OnStageTransitionStart += OnStageTransitionStart;
         StageManager.OnStageTransitionComplete += OnStageTransitionComplete;
+        StageManager.OnRoundStart += OnRoundStart; // 라운드 시작 시에도 동기화
+
+        // BackgroundScroller 스크롤 완료 이벤트 구독 (정확한 정지 타이밍 동기화)
+        BackgroundScroller.OnScrollComplete += OnBackgroundScrollComplete;
     }
 
     private void OnDisable()
@@ -41,6 +52,8 @@ public class CharacterWalkAnimation : MonoBehaviour
         Debug.Log($"[{gameObject.name}] StageManager 이벤트 구독 해제");
         StageManager.OnStageTransitionStart -= OnStageTransitionStart;
         StageManager.OnStageTransitionComplete -= OnStageTransitionComplete;
+    StageManager.OnRoundStart -= OnRoundStart;
+    BackgroundScroller.OnScrollComplete -= OnBackgroundScrollComplete;
     }
 
     #region ▶ 이벤트 핸들러 ◀
@@ -55,6 +68,20 @@ public class CharacterWalkAnimation : MonoBehaviour
     private void OnStageTransitionComplete(int nextStage)
     {
         Debug.Log($"[{gameObject.name}] 스테이지 {nextStage} 전환 완료 - 캐릭터 걷기 애니메이션 정지");
+        StopWalking();
+    }
+
+    /// <summary>라운드 시작 시 호출</summary>
+    private void OnRoundStart(int stage, int round)
+    {
+        Debug.Log($"[{gameObject.name}] Stage {stage}-{round} 라운드 시작 - 캐릭터 걷기 애니메이션 시작");
+        StartWalking();
+    }
+
+    /// <summary>배경 스크롤 완료 시 호출</summary>
+    private void OnBackgroundScrollComplete()
+    {
+        Debug.Log($"[{gameObject.name}] 배경 스크롤 완료 - 캐릭터 걷기 애니메이션 정지");
         StopWalking();
     }
     #endregion
@@ -82,6 +109,16 @@ public class CharacterWalkAnimation : MonoBehaviour
         
         walkCoroutine = StartCoroutine(WalkAnimationCoroutine());
         Debug.Log($"[{gameObject.name}] 걷기 코루틴 시작");
+
+        // 지정 시간 후 자동 정지 (옵션)
+        if (autoStopOnDuration && walkDuration > 0f)
+        {
+            if (autoStopCoroutine != null)
+            {
+                StopCoroutine(autoStopCoroutine);
+            }
+            autoStopCoroutine = StartCoroutine(AutoStopAfter(walkDuration));
+        }
     }
 
     /// <summary>걷기 애니메이션 정지</summary>
@@ -106,10 +143,14 @@ public class CharacterWalkAnimation : MonoBehaviour
             walkCoroutine = null;
             Debug.Log($"[{gameObject.name}] 걷기 코루틴 정지");
         }
+        // Transform 위치는 더 이상 변경하지 않음 (XY 이동 로직 제거)
 
-        // 원래 위치로 복원
-        transform.localPosition = originalPosition;
-        Debug.Log($"[{gameObject.name}] 원래 위치로 복원: {originalPosition}");
+        // 자동 정지 타이머 정리
+        if (autoStopCoroutine != null)
+        {
+            StopCoroutine(autoStopCoroutine);
+            autoStopCoroutine = null;
+        }
     }
 
     /// <summary>걷기 상태 확인</summary>
@@ -117,31 +158,24 @@ public class CharacterWalkAnimation : MonoBehaviour
     #endregion
 
     #region ▶ 애니메이션 코루틴 ◀
-    /// <summary>걷기 애니메이션 메인 코루틴</summary>
+    /// <summary>걷기 애니메이션 메인 코루틴 (위치 변경 없음)</summary>
     private IEnumerator WalkAnimationCoroutine()
     {
-        float timeOffset = Random.Range(0f, Mathf.PI * 2f); // 캐릭터마다 다른 오프셋
-
         while (isWalking)
         {
-            // 위치 애니메이션 (물리적 움직임)
-            UpdateWalkPosition(timeOffset);
-            
             yield return null;
         }
     }
 
-    /// <summary>걷기 위치 업데이트</summary>
-    private void UpdateWalkPosition(float timeOffset)
+    /// <summary>지정된 시간 후 자동 정지</summary>
+    private IEnumerator AutoStopAfter(float duration)
     {
-        float time = Time.time + timeOffset;
-        
-        // 상하 움직임 (바운싱) - X 위치는 고정하고 Y축만 움직임
-        float bobOffset = Mathf.Sin(time * walkBobSpeed) * walkBobAmount;
-        
-        // X축은 원래 위치 유지, Y축만 바운싱 효과 적용
-        Vector3 newPosition = new Vector3(originalPosition.x, originalPosition.y + bobOffset, originalPosition.z);
-        transform.localPosition = newPosition;
+        yield return new WaitForSeconds(duration);
+        if (isWalking)
+        {
+            Debug.Log($"[{gameObject.name}] 자동 정지: {duration}초 경과");
+            StopWalking();
+        }
     }
     #endregion
 

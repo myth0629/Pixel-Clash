@@ -22,8 +22,18 @@ public class CharacterData : ScriptableObject
     [Header("Economy")]
     public int unlockCost;           // 골드 해금 비용
 
+    [Header("Battle Placement")]
+    [Tooltip("이 캐릭터가 배치될 수 있는 위치 (Front: 전방, Back: 후방)")]
+    public PositionType position = PositionType.Front;
+
     [Header("Skill Unlocks")]
     public List<SkillUnlock> skills; // (레벨, 스킬) 쌍
+}
+
+public enum PositionType
+{
+    Front,
+    Back
 }
 
 [Serializable]

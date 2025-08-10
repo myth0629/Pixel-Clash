@@ -60,6 +60,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Armored Orc
       objectReference: {fileID: 0}
+    - target: {fileID: 6615534122111264602, guid: dd19716893af5492b964bb40c2e3dbc8, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.1
+      objectReference: {fileID: 0}
     - target: {fileID: 7830232458973669189, guid: dd19716893af5492b964bb40c2e3dbc8, type: 3}
       propertyPath: m_Name
       value: Armored Orc
