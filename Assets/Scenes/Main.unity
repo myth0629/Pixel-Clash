@@ -2245,10 +2245,14 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0b9f5be3c03344aa3a5c787a2e3eed53, type: 2}
   - {fileID: 11400000, guid: 9939cfbe3c6234c87b2d4a17677234a2, type: 2}
   - {fileID: 11400000, guid: bed7e3e5f6a72445ea8f3bc465d59f91, type: 2}
+  - {fileID: 11400000, guid: 88df0e870306f4fbfabf5ecd711c1570, type: 2}
   battleStartDelay: 2
   healthBarPrefab: {fileID: 4526279226287500771, guid: c6887d393265346ca962273b5461d898, type: 3}
   uiRoot: {fileID: 1013079399}
   GameOverPanel: {fileID: 2026488917}
+  healEffectPrefab: {fileID: 8326664121438841150, guid: ec4d72834beb94973a8aaca9955f6dc6, type: 3}
+  healEffectOffset: {x: 0, y: 0, z: 0}
+  healEffectAutoDestroyTime: 0.5
   autoStartOnPlay: 0
   testPartyCharacters: []
   testPartyLevels: 
@@ -2285,6 +2289,11 @@ MonoBehaviour:
   playerLevel: 1
   baseExpToLevelUp: 50
   expGrowthRate: 1.2
+  healSkillLevel: 0
+  healBaseAmount: 50
+  healPerLevel: 10
+  healUpgradeBaseCost: 100
+  healUpgradeCostGrowth: 1.5
 --- !u!114 &318403655
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8878,7 +8887,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1503698997
 RectTransform:
   m_ObjectHideFlags: 0
@@ -10190,6 +10199,10 @@ MonoBehaviour:
   upgradeCharacterContainer: {fileID: 1629412453}
   upgradeCharacterItemPrefab: {fileID: 1555275770622025032, guid: a196ce07ad7d94743842c2befec99c38, type: 3}
   closeUpgradeButton: {fileID: 111576711}
+  upgradeCharactersTabButton: {fileID: 2033253888}
+  upgradeSkillsTabButton: {fileID: 15836665}
+  upgradeSkillContainer: {fileID: 1629412453}
+  skillUpgradeItemPrefab: {fileID: 1555275770622025032, guid: 2d4603718a37741faafb9b52d81129a8, type: 3}
   testRefundButton: {fileID: 0}
   testPanel: {fileID: 0}
   purchaseConfirmPanel: {fileID: 297596118}
@@ -10211,6 +10224,7 @@ MonoBehaviour:
   pausePanel: {fileID: 1787536250}
   pauseResumeButton: {fileID: 1907738975}
   pauseBackToTitleButton: {fileID: 562589086}
+  healButton: {fileID: 2002632597}
   showTitleOnStart: 1
 --- !u!4 &1666277181
 Transform:
@@ -13754,7 +13768,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC720\uBB3C"
+  m_text: "\uC2A4\uD0AC"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: e10a6c76065dc49ae844a4249dbc4225, type: 2}
   m_sharedMaterial: {fileID: -849580060544317805, guid: e10a6c76065dc49ae844a4249dbc4225, type: 2}

@@ -57,6 +57,10 @@ public class GameUIManager : MonoBehaviour
     [SerializeField] private Transform upgradeCharacterContainer; // 업그레이드 캐릭터 리스트 컨테이너 (Scroll View의 Content)
     [SerializeField] private GameObject upgradeCharacterItemPrefab; // 업그레이드 캐릭터 아이템 프리팹
     [SerializeField] private Button closeUpgradeButton; // 업그레이드 닫기 버튼
+    [SerializeField] private Button upgradeCharactersTabButton; // 업그레이드 패널 - 캐릭터 탭 버튼
+    [SerializeField] private Button upgradeSkillsTabButton;    // 업그레이드 패널 - 스킬 탭 버튼
+    [SerializeField] private Transform upgradeSkillContainer; // 스킬 업그레이드 섹션 컨테이너
+    [SerializeField] private GameObject skillUpgradeItemPrefab; // 스킬 업그레이드 아이템 프리팹
     
     [Header("테스트 기능")]
     [SerializeField] private Button testRefundButton; // 테스트용 구매 취소 버튼
@@ -80,6 +84,9 @@ public class GameUIManager : MonoBehaviour
     [SerializeField] private GameObject pausePanel; // 일시정지 팝업 패널
     [SerializeField] private Button pauseResumeButton; // 계속하기 버튼
     [SerializeField] private Button pauseBackToTitleButton; // 타이틀로 버튼
+
+    [Header("배틀 액션 버튼")]
+    [SerializeField] private Button healButton; // 힐 버튼
 
     [Header("설정")]
     [SerializeField] private bool showTitleOnStart = true;
@@ -107,9 +114,13 @@ public class GameUIManager : MonoBehaviour
     // 업그레이드 관리 변수들
     private Dictionary<string, int> characterLevels = new Dictionary<string, int>(); // 캐릭터별 레벨 (name -> level)
     private CharacterData pendingUpgradeCharacter; // 업그레이드 대기 중인 캐릭터
+
+    // 업그레이드 탭 상태
+    private enum UpgradeTab { Characters, Skills }
+    private UpgradeTab currentUpgradeTab = UpgradeTab.Characters;
     
     // 팝업 컨텍스트 관리
-    private enum PopupContext { Shop, Upgrade }
+    private enum PopupContext { Shop, Upgrade, UpgradeSkill }
     private PopupContext currentPopupContext = PopupContext.Shop;
 
     private void Awake()
@@ -169,6 +180,12 @@ public class GameUIManager : MonoBehaviour
         {
             UpdatePrepareGoldDisplay();
         }
+
+        // 업그레이드 화면이 열려있다면 스킬/캐릭터 항목 버튼 활성화 재계산
+        if (upgradePanel != null && upgradePanel.activeSelf)
+        {
+            RefreshUpgradeItems();
+        }
     }
 
     /// <summary>상점 아이템들의 구매 가능 여부만 업데이트</summary>
@@ -216,6 +233,12 @@ public class GameUIManager : MonoBehaviour
         {
             pauseBackToTitleButton.onClick.RemoveAllListeners();
             pauseBackToTitleButton.onClick.AddListener(OnPauseBackToTitleClicked);
+        }
+
+        if (healButton != null)
+        {
+            healButton.onClick.RemoveAllListeners();
+            healButton.onClick.AddListener(OnHealButtonClicked);
         }
 
         if (battleStartButton != null)
@@ -584,6 +607,15 @@ public class GameUIManager : MonoBehaviour
 
         // 준비 화면 표시
         ShowPrepareScreen();
+    }
+
+    /// <summary>힐 버튼 클릭: 즉시 회복 + 이펙트</summary>
+    private void OnHealButtonClicked()
+    {
+        if (currentState != UIState.Game) return;
+        if (isPaused) return; // 일시정지 중에는 무시
+        if (BattleManager.Instance == null) return;
+        BattleManager.Instance.HealFrontPriorityTarget();
     }
 
     #region 버튼 이벤트 핸들러
@@ -988,6 +1020,8 @@ public class GameUIManager : MonoBehaviour
             upgradePanel.SetActive(true);
             SetupUpgradeButtons();
             RefreshUpgradeItems();
+            // 기본 탭은 캐릭터 탭으로 표시
+            ShowUpgradeCharactersTab();
         }
         
         Debug.Log("업그레이드 화면 표시 - preparePanel 유지, upgradePanel 활성화");
@@ -1079,18 +1113,133 @@ public class GameUIManager : MonoBehaviour
         if (confirmPurchaseButton != null)
         {
             confirmPurchaseButton.onClick.RemoveAllListeners();
-            confirmPurchaseButton.onClick.AddListener(OnConfirmUpgrade);
+            // 업그레이드/스킬 업그레이드 모두 같은 확인 버튼을 사용하되 컨텍스트로 분기
+            confirmPurchaseButton.onClick.AddListener(() =>
+            {
+                switch (currentPopupContext)
+                {
+                    case PopupContext.Upgrade:
+                        OnConfirmUpgrade();
+                        break;
+                    case PopupContext.UpgradeSkill:
+                        OnConfirmSkillUpgrade();
+                        break;
+                    case PopupContext.Shop:
+                    default:
+                        OnConfirmPurchase();
+                        break;
+                }
+            });
         }
 
         if (cancelPurchaseButton != null)
         {
             cancelPurchaseButton.onClick.RemoveAllListeners();
-            cancelPurchaseButton.onClick.AddListener(OnCancelUpgrade);
+            // 컨텍스트에 따른 취소 처리
+            cancelPurchaseButton.onClick.AddListener(() =>
+            {
+                switch (currentPopupContext)
+                {
+                    case PopupContext.Upgrade:
+                        OnCancelUpgrade();
+                        break;
+                    case PopupContext.UpgradeSkill:
+                        OnCancelSkillUpgrade();
+                        break;
+                    case PopupContext.Shop:
+                    default:
+                        OnCancelPurchase();
+                        break;
+                }
+            });
         }
 
         // 구매 확인 팝업 초기 상태 설정
         if (purchaseConfirmPanel != null)
             purchaseConfirmPanel.SetActive(false);
+
+        // 업그레이드 카테고리 탭 버튼 연결
+        if (upgradeCharactersTabButton != null)
+        {
+            upgradeCharactersTabButton.onClick.RemoveAllListeners();
+            upgradeCharactersTabButton.onClick.AddListener(ShowUpgradeCharactersTab);
+        }
+
+        if (upgradeSkillsTabButton != null)
+        {
+            upgradeSkillsTabButton.onClick.RemoveAllListeners();
+            upgradeSkillsTabButton.onClick.AddListener(ShowUpgradeSkillsTab);
+        }
+    }
+
+    /// <summary>스킬 업그레이드 확인 팝업 표시</summary>
+    public void ShowSkillUpgradeConfirmPopup()
+    {
+        if (purchaseConfirmPanel == null) return;
+
+        currentPopupContext = PopupContext.UpgradeSkill;
+
+        int level = GameDataManager.Instance != null ? GameDataManager.Instance.HealSkillLevel : 0;
+        int nextCost = GameDataManager.Instance != null ? GameDataManager.Instance.GetHealSkillUpgradeCost() : 0;
+        int currentAmount = GameDataManager.Instance != null ? GameDataManager.Instance.GetCurrentHealAmount() : 0;
+
+        if (confirmCharacterNameText != null)
+            confirmCharacterNameText.text = $"힐 스킬 (Lv.{level})";
+        if (confirmPriceText != null)
+            confirmPriceText.text = $"{nextCost} 골드";
+        if (confirmMessageText != null)
+            confirmMessageText.text = $"힐 스킬을 레벨 {level + 1}로 업그레이드하시겠습니까?\n현재 힐량: {currentAmount}";
+
+        bool canAfford = GameDataManager.Instance != null && GameDataManager.Instance.CurrentGold >= nextCost;
+        if (confirmPurchaseButton != null)
+            confirmPurchaseButton.interactable = canAfford;
+
+        purchaseConfirmPanel.SetActive(true);
+    }
+
+    /// <summary>스킬 업그레이드 확정</summary>
+    private void OnConfirmSkillUpgrade()
+    {
+        if (GameDataManager.Instance == null)
+        {
+            ClosePurchaseConfirmPopup();
+            return;
+        }
+
+        // 비용 차감과 레벨 증가를 한 번에 처리
+        bool success = GameDataManager.Instance.TryUpgradeHealSkill();
+        if (!success)
+        {
+            // 골드 부족 등
+            ClosePurchaseConfirmPopup();
+            return;
+        }
+
+        // UI 갱신 및 팝업 닫기
+        RefreshUpgradeItems();
+        ClosePurchaseConfirmPopup();
+    }
+
+    /// <summary>스킬 업그레이드 취소</summary>
+    private void OnCancelSkillUpgrade()
+    {
+        ClosePurchaseConfirmPopup();
+    }
+
+    /// <summary>업그레이드 - 캐릭터 탭 표시</summary>
+    private void ShowUpgradeCharactersTab()
+    {
+        currentUpgradeTab = UpgradeTab.Characters;
+        // 단일 ScrollView 공유: 컨텐츠만 재구성
+        RefreshUpgradeItems();
+    }
+
+    /// <summary>업그레이드 - 스킬 탭 표시</summary>
+    private void ShowUpgradeSkillsTab()
+    {
+        currentUpgradeTab = UpgradeTab.Skills;
+        // 단일 ScrollView 공유: 컨텐츠만 재구성
+        RefreshUpgradeItems();
     }
 
     /// <summary>상점 닫기</summary>
@@ -1151,37 +1300,63 @@ public class GameUIManager : MonoBehaviour
         }
     }
 
-    /// <summary>업그레이드 아이템 목록 새로고침</summary>
+    /// <summary>업그레이드 아이템 목록 새로고침 (단일 ScrollView 공유)</summary>
     private void RefreshUpgradeItems()
     {
-        if (upgradeCharacterContainer == null || upgradeCharacterItemPrefab == null)
+        if (upgradeCharacterContainer == null)
         {
-            Debug.LogWarning("upgradeCharacterContainer 또는 upgradeCharacterItemPrefab이 null입니다!");
+            Debug.LogWarning("upgradeCharacterContainer(Content)가 null입니다!");
             return;
         }
 
-        // 기존 아이템들 제거
+        // 기존 리스트 비우기
         foreach (Transform child in upgradeCharacterContainer)
         {
             Destroy(child.gameObject);
         }
 
-        // 보유 중인 캐릭터들만 표시
-        var ownedCharacters = GetOwnedCharacters();
-        
-        foreach (var character in ownedCharacters)
+        // 현재 탭에 따라 컨텐츠 생성
+        if (currentUpgradeTab == UpgradeTab.Characters)
         {
-            GameObject itemObj = Instantiate(upgradeCharacterItemPrefab, upgradeCharacterContainer);
-            UpgradeCharacterItem item = itemObj.GetComponent<UpgradeCharacterItem>();
-            
-            if (item != null)
+            if (upgradeCharacterItemPrefab == null)
             {
-                int currentLevel = GetCharacterLevel(character);
-                item.SetupItem(character, currentLevel, this);
+                Debug.LogWarning("upgradeCharacterItemPrefab이 null입니다!");
+                return;
             }
-        }
 
-        Debug.Log($"업그레이드 아이템 새로고침: {ownedCharacters.Count}개 캐릭터 표시");
+            var ownedCharacters = GetOwnedCharacters();
+            foreach (var character in ownedCharacters)
+            {
+                GameObject itemObj = Instantiate(upgradeCharacterItemPrefab, upgradeCharacterContainer);
+                var item = itemObj.GetComponent<UpgradeCharacterItem>();
+                if (item != null)
+                {
+                    int currentLevel = GetCharacterLevel(character);
+                    item.SetupItem(character, currentLevel, this);
+                }
+            }
+
+            Debug.Log($"업그레이드(캐릭터) 새로고침: {ownedCharacters.Count}개");
+        }
+        else // UpgradeTab.Skills
+        {
+            if (skillUpgradeItemPrefab == null)
+            {
+                Debug.LogWarning("skillUpgradeItemPrefab이 null입니다!");
+                return;
+            }
+
+            // 현재는 힐 스킬 1개만 표시
+            GameObject skillObj = Instantiate(skillUpgradeItemPrefab, upgradeCharacterContainer);
+            var skillComp = skillObj.GetComponent("SkillUpgradeItem");
+            if (skillComp != null)
+            {
+                var setup = skillComp.GetType().GetMethod("Setup");
+                setup?.Invoke(skillComp, new object[] { this });
+            }
+
+            Debug.Log("업그레이드(스킬) 새로고침");
+        }
     }
 
     /// <summary>보유 중인 캐릭터 목록 반환</summary>
@@ -1272,10 +1447,9 @@ public class GameUIManager : MonoBehaviour
         int currentLevel = GetCharacterLevel(pendingUpgradeCharacter);
         int upgradeCost = GetUpgradeCost(pendingUpgradeCharacter, currentLevel);
 
-        if (GameDataManager.Instance != null && GameDataManager.Instance.SpendGold(upgradeCost))
+    if (GameDataManager.Instance != null && GameDataManager.Instance.SpendGold(upgradeCost))
         {
             // 레벨업 실행
-            SetCharacterLevel(pendingUpgradeCharacter, currentLevel + 1);
             
             Debug.Log($"{pendingUpgradeCharacter.displayName} 레벨업: {currentLevel} → {currentLevel + 1}, 비용: {upgradeCost} 골드");
             

@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 14f5991547650437cb354c991f78e9dc, type: 3}
-  m_Name: Skeleton
+  m_Name: Armored Skeleton
   m_EditorClassIdentifier: 
-  monsterName: "\uD574\uACE8 \uC878\uBCD1"
-  description: 
-  icon: {fileID: 303854554312539980, guid: ac15cb10fb6364d2a8fa9f2cdc4aa05a, type: 3}
-  prefab: {fileID: 6964586936139052270, guid: 06d0512b740f4472089a412987baad3a, type: 3}
-  baseHp: 30
-  baseAtk: 5
+  monsterName: "\uD574\uACE8 \uBCD1\uC0AC"
+  description: "\uBAAC\uC2A4\uD130 \uC124\uBA85"
+  icon: {fileID: 5525993030540068286, guid: 0b25d69491ff64c93a7b623bd1fdf60e, type: 3}
+  prefab: {fileID: 6763441860539625613, guid: 9afec1ce8d0cf4bd9acd443c95857dc4, type: 3}
+  baseHp: 40
+  baseAtk: 8
   attackInterval: 1.2
   hpPerWave: 10
   atkPerWave: 3

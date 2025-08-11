@@ -17,6 +17,13 @@ public class GameDataManager : MonoBehaviour
     [SerializeField] private int baseExpToLevelUp = 100;
     [SerializeField] private float expGrowthRate = 1.2f;
 
+    [Header("힐 스킬 설정")]
+    [SerializeField] private int healSkillLevel = 0;           // 힐 스킬 레벨
+    [SerializeField] private int healBaseAmount = 50;          // 기본 힐량
+    [SerializeField] private int healPerLevel = 10;            // 레벨당 추가 힐량
+    [SerializeField] private int healUpgradeBaseCost = 100;    // 업그레이드 기본 비용
+    [SerializeField] private float healUpgradeCostGrowth = 1.5f; // 업그레이드 비용 성장률
+
     // 이벤트
     public static event Action<int> OnGoldChanged;
     public static event Action<int> OnExpChanged;
@@ -27,6 +34,7 @@ public class GameDataManager : MonoBehaviour
     public int CurrentExp => currentExp;
     public int PlayerLevel => playerLevel;
     public int ExpToNextLevel => GetExpForNextLevel() - currentExp;
+    public int HealSkillLevel => healSkillLevel;
 
     private void Awake()
     {
@@ -157,6 +165,7 @@ public class GameDataManager : MonoBehaviour
         PlayerPrefs.SetInt("CurrentGold", currentGold);
         PlayerPrefs.SetInt("CurrentExp", currentExp);
         PlayerPrefs.SetInt("PlayerLevel", playerLevel);
+    PlayerPrefs.SetInt("HealSkillLevel", healSkillLevel);
         PlayerPrefs.Save();
     }
 
@@ -166,6 +175,7 @@ public class GameDataManager : MonoBehaviour
         currentGold = PlayerPrefs.GetInt("CurrentGold", 0);
         currentExp = PlayerPrefs.GetInt("CurrentExp", 0);
         playerLevel = PlayerPrefs.GetInt("PlayerLevel", 1);
+    healSkillLevel = PlayerPrefs.GetInt("HealSkillLevel", 0);
 
         // 이벤트 발생
         OnGoldChanged?.Invoke(currentGold);
@@ -178,10 +188,12 @@ public class GameDataManager : MonoBehaviour
         currentGold = 0;
         currentExp = 0;
         playerLevel = 1;
+    healSkillLevel = 0;
 
         PlayerPrefs.DeleteKey("CurrentGold");
         PlayerPrefs.DeleteKey("CurrentExp");
         PlayerPrefs.DeleteKey("PlayerLevel");
+    PlayerPrefs.DeleteKey("HealSkillLevel");
 
         OnGoldChanged?.Invoke(currentGold);
         OnExpChanged?.Invoke(currentExp);
@@ -211,6 +223,33 @@ public class GameDataManager : MonoBehaviour
         if (expForNextLevel <= 0) return 1f;
         
         return (float)currentExp / expForNextLevel;
+    }
+
+    // ===== 힐 스킬 API =====
+    /// <summary>현재 힐량 계산 (기본 + 레벨당 증가)</summary>
+    public int GetCurrentHealAmount()
+    {
+        return Mathf.Max(0, healBaseAmount + healSkillLevel * healPerLevel);
+    }
+
+    /// <summary>다음 힐 스킬 업그레이드 비용</summary>
+    public int GetHealSkillUpgradeCost()
+    {
+        // 기하급수 성장 비용
+        double cost = healUpgradeBaseCost * System.Math.Pow(healUpgradeCostGrowth, healSkillLevel);
+        return Mathf.Max(1, Mathf.RoundToInt((float)cost));
+    }
+
+    /// <summary>힐 스킬 업그레이드 시도 (성공 시 true)</summary>
+    public bool TryUpgradeHealSkill()
+    {
+        int cost = GetHealSkillUpgradeCost();
+        if (!SpendGold(cost)) return false;
+        healSkillLevel++;
+        PlayerPrefs.SetInt("HealSkillLevel", healSkillLevel);
+        PlayerPrefs.Save();
+        Debug.Log($"힐 스킬 업그레이드! 레벨: {healSkillLevel}, 현재 힐량: {GetCurrentHealAmount()}");
+        return true;
     }
     #endregion
 }

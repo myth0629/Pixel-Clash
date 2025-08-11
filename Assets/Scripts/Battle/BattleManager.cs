@@ -28,6 +28,13 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private Transform uiRoot;            // 월드 스페이스 Canvas 루트
     [SerializeField] private GameObject GameOverPanel;
 
+    [Header("VFX / Heal")]
+    [Tooltip("힐 사용 시 재생할 VFX 프리팹 (Particle/Animator 모두 가능)")]
+    [SerializeField] private GameObject healEffectPrefab;
+    [SerializeField] private Vector3 healEffectOffset = new Vector3(0f, 1f, 0f);
+    [Tooltip("이펙트에 파티클이 없을 때 기본 파괴 시간(초)")]
+    [SerializeField] private float healEffectAutoDestroyTime = 2f;
+
     // ---------------- Test Mode ----------------
     [Header("Test Mode (Play‑Mode Quick Test)")]
     [Tooltip("Play 버튼을 누르면 즉시 StartBattle()을 호출합니다.")]
@@ -458,6 +465,65 @@ public class BattleManager : MonoBehaviour
         
         // 전방에 없으면 후방에서 선택
         return alive[Random.Range(0, alive.Count)];
+    }
+
+    #endregion
+
+    #region ▶ 힐/이펙트 ◀
+    /// <summary>전방 우선 생존자 1명 힐</summary>
+    public void HealFrontPriorityTarget()
+    {
+        var target = GetRandomAlivePlayer();
+        if (target == null)
+        {
+            Debug.Log("힐 대상 없음");
+            return;
+        }
+
+        int amount = 50; // 기본값
+        if (GameDataManager.Instance != null)
+        {
+            amount = GameDataManager.Instance.GetCurrentHealAmount();
+        }
+
+        target.Heal(amount);
+        PlayHealEffect(target.transform);
+        Debug.Log($"힐 적용: {target.name} +{amount}");
+    }
+
+    /// <summary>대상 위치에 힐 이펙트 생성</summary>
+    private void PlayHealEffect(Transform target)
+    {
+        if (healEffectPrefab == null || target == null) return;
+
+        var instance = Instantiate(healEffectPrefab, target);
+        instance.transform.localPosition = healEffectOffset;
+
+        // 파티클 기반이면 파티클 재생 시간 후 자동 파괴
+        var ps = instance.GetComponentInChildren<ParticleSystem>();
+        if (ps != null)
+        {
+            var main = ps.main;
+            // startLifetime이 MinMaxCurve이므로 최대값 사용 시도
+            float life = 0f;
+            var sl = main.startLifetime;
+            switch (sl.mode)
+            {
+                case ParticleSystemCurveMode.TwoConstants:
+                    life = Mathf.Max(sl.constantMin, sl.constantMax); break;
+                case ParticleSystemCurveMode.TwoCurves:
+                case ParticleSystemCurveMode.Curve:
+                    life = sl.constantMax; break; // 근사치
+                default:
+                    life = sl.constant; break;
+            }
+            float destroyAfter = main.duration + life + 0.1f;
+            Destroy(instance, destroyAfter);
+            return;
+        }
+
+        // Animator만 있는 경우 기본 파괴 시간 사용
+        Destroy(instance, healEffectAutoDestroyTime);
     }
     #endregion
 

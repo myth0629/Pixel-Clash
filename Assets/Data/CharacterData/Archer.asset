@@ -17,9 +17,9 @@ MonoBehaviour:
   icon: {fileID: 5420657165879536120, guid: 66a58365ff2134ffcbe0eb43c1e4d715, type: 3}
   prefab: {fileID: 7500578308408402378, guid: 475f09eb735464f7abd52eba0a20125e, type: 3}
   baseHp: 40
-  hpGrowth: 1
+  hpGrowth: 0.1
   baseAtk: 4
-  atkGrowth: 1
+  atkGrowth: 0.15
   unlockCost: 100
   position: 1
   skills: []
