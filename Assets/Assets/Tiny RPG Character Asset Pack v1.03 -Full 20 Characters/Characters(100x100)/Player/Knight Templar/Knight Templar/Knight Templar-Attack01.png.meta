@@ -1,19 +1,28 @@
 fileFormatVersion: 2
-guid: e9ead6bcfc704451981b1ef2656ea928
+guid: c0a2544022902453ea789d0fc3cf91ce
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8305241021776615327
-    second: Knight Templar-Hurt_0
+      213: -188057681505786183
+    second: Knight Templar-Attack01_0
   - first:
-      213: -3152356076381349671
-    second: Knight Templar-Hurt_1
+      213: 7841000686171082199
+    second: Knight Templar-Attack01_1
   - first:
-      213: 3169031777222464709
-    second: Knight Templar-Hurt_2
+      213: -3387691212486521933
+    second: Knight Templar-Attack01_2
   - first:
-      213: 721876271342261782
-    second: Knight Templar-Hurt_3
+      213: -8768341923541291675
+    second: Knight Templar-Attack01_3
+  - first:
+      213: -1788390736974389003
+    second: Knight Templar-Attack01_4
+  - first:
+      213: -3077213755347920567
+    second: Knight Templar-Attack01_5
+  - first:
+      213: -9220345309787696303
+    second: Knight Templar-Attack01_6
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +55,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -109,12 +118,12 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Knight Templar-Hurt_0
+      name: Knight Templar-Attack01_0
       rect:
         serializedVersion: 2
-        x: 39
+        x: 42
         y: 42
-        width: 30
+        width: 29
         height: 19
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -124,19 +133,19 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f975ffcc4b4224370800000000000000
-      internalID: 8305241021776615327
+      spriteID: 9b66098f882e36df0800000000000000
+      internalID: -188057681505786183
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Knight Templar-Hurt_1
+      name: Knight Templar-Attack01_1
       rect:
         serializedVersion: 2
-        x: 139
+        x: 142
         y: 42
-        width: 30
+        width: 28
         height: 19
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -146,19 +155,19 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9d8deb5b9d49044d0800000000000000
-      internalID: -3152356076381349671
+      spriteID: 7dd42d6a494d0dc60800000000000000
+      internalID: 7841000686171082199
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Knight Templar-Hurt_2
+      name: Knight Templar-Attack01_2
       rect:
         serializedVersion: 2
-        x: 239
+        x: 242
         y: 42
-        width: 30
+        width: 25
         height: 19
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -168,19 +177,19 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5c415437c99aafb20800000000000000
-      internalID: 3169031777222464709
+      spriteID: 3bb470f7ac08cf0d0800000000000000
+      internalID: -3387691212486521933
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Knight Templar-Hurt_3
+      name: Knight Templar-Attack01_3
       rect:
         serializedVersion: 2
-        x: 339
+        x: 342
         y: 42
-        width: 30
+        width: 25
         height: 19
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -190,8 +199,74 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6169325e4ae940a00800000000000000
-      internalID: 721876271342261782
+      spriteID: 56de72a2a77905680800000000000000
+      internalID: -8768341923541291675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Knight Templar-Attack01_4
+      rect:
+        serializedVersion: 2
+        x: 443
+        y: 42
+        width: 35
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f0ea0b991c5e27e0800000000000000
+      internalID: -1788390736974389003
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Knight Templar-Attack01_5
+      rect:
+        serializedVersion: 2
+        x: 543
+        y: 42
+        width: 37
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9499a8ea46a8b45d0800000000000000
+      internalID: -3077213755347920567
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Knight Templar-Attack01_6
+      rect:
+        serializedVersion: 2
+        x: 643
+        y: 42
+        width: 37
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1535aafcac0ca0080800000000000000
+      internalID: -9220345309787696303
       vertices: []
       indices: 
       edges: []
@@ -209,7 +284,14 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Knight Templar-Attack01_0: -188057681505786183
+      Knight Templar-Attack01_1: 7841000686171082199
+      Knight Templar-Attack01_2: -3387691212486521933
+      Knight Templar-Attack01_3: -8768341923541291675
+      Knight Templar-Attack01_4: -1788390736974389003
+      Knight Templar-Attack01_5: -3077213755347920567
+      Knight Templar-Attack01_6: -9220345309787696303
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

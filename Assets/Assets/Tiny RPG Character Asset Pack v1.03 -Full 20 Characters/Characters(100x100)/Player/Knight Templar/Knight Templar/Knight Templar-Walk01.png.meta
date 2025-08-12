@@ -1,31 +1,31 @@
 fileFormatVersion: 2
-guid: 3a076e65f65f04b23b4283f6d9bd0c35
+guid: 03657d6c8ddd44d9a8761ccab2b3a955
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -2597381152186636301
-    second: Knight Templar-Attack02_0
+      213: 1125982615641219489
+    second: Knight Templar-Walk01_0
   - first:
-      213: -7061146981234406433
-    second: Knight Templar-Attack02_1
+      213: -7559713982584943670
+    second: Knight Templar-Walk01_1
   - first:
-      213: 2992443785773472999
-    second: Knight Templar-Attack02_2
+      213: -275527533531397990
+    second: Knight Templar-Walk01_2
   - first:
-      213: 8493161525626119925
-    second: Knight Templar-Attack02_3
+      213: -2199073968385159856
+    second: Knight Templar-Walk01_3
   - first:
-      213: -1864779586295809253
-    second: Knight Templar-Attack02_4
+      213: -385612860125385983
+    second: Knight Templar-Walk01_4
   - first:
-      213: -7645568429384994667
-    second: Knight Templar-Attack02_5
+      213: 2248871265315595550
+    second: Knight Templar-Walk01_5
   - first:
-      213: -1003892951372907330
-    second: Knight Templar-Attack02_6
+      213: -5777293928420375301
+    second: Knight Templar-Walk01_6
   - first:
-      213: -6412179205740535883
-    second: Knight Templar-Attack02_7
+      213: -1777591913858137679
+    second: Knight Templar-Walk01_7
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -58,7 +58,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -121,7 +121,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Knight Templar-Attack02_0
+      name: Knight Templar-Walk01_0
       rect:
         serializedVersion: 2
         x: 42
@@ -136,14 +136,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 3f7ee958a9f34fbd0800000000000000
-      internalID: -2597381152186636301
+      spriteID: 1a16f84293b40af00800000000000000
+      internalID: 1125982615641219489
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Knight Templar-Attack02_1
+      name: Knight Templar-Walk01_1
       rect:
         serializedVersion: 2
         x: 142
@@ -158,20 +158,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: fdb83bc6b34c10e90800000000000000
-      internalID: -7061146981234406433
+      spriteID: acb88789f20861790800000000000000
+      internalID: -7559713982584943670
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Knight Templar-Attack02_2
+      name: Knight Templar-Walk01_2
       rect:
         serializedVersion: 2
         x: 242
         y: 42
-        width: 25
-        height: 21
+        width: 29
+        height: 19
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -180,20 +180,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7ec5a5db4cb478920800000000000000
-      internalID: 2992443785773472999
+      spriteID: a9085060b212d2cf0800000000000000
+      internalID: -275527533531397990
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Knight Templar-Attack02_3
+      name: Knight Templar-Walk01_3
       rect:
         serializedVersion: 2
         x: 342
         y: 42
-        width: 19
-        height: 27
+        width: 29
+        height: 18
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -202,86 +202,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5f6a5faa865cdd570800000000000000
-      internalID: 8493161525626119925
+      spriteID: 05d089f70e15b71e0800000000000000
+      internalID: -2199073968385159856
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Knight Templar-Attack02_4
+      name: Knight Templar-Walk01_4
       rect:
         serializedVersion: 2
         x: 442
         y: 42
-        width: 20
-        height: 26
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b1b3076a8d8fe16e0800000000000000
-      internalID: -1864779586295809253
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Knight Templar-Attack02_5
-      rect:
-        serializedVersion: 2
-        x: 538
-        y: 36
-        width: 38
-        height: 29
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 590f09c750c75e590800000000000000
-      internalID: -7645568429384994667
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Knight Templar-Attack02_6
-      rect:
-        serializedVersion: 2
-        x: 639
-        y: 36
-        width: 37
-        height: 26
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: ebc36e8fda47112f0800000000000000
-      internalID: -1003892951372907330
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Knight Templar-Attack02_7
-      rect:
-        serializedVersion: 2
-        x: 740
-        y: 36
         width: 29
-        height: 24
+        height: 19
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -290,8 +224,74 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5bf50bd4cfc5307a0800000000000000
-      internalID: -6412179205740535883
+      spriteID: 10b6763952706aaf0800000000000000
+      internalID: -385612860125385983
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Knight Templar-Walk01_5
+      rect:
+        serializedVersion: 2
+        x: 542
+        y: 42
+        width: 29
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1528b23088953f10800000000000000
+      internalID: 2248871265315595550
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Knight Templar-Walk01_6
+      rect:
+        serializedVersion: 2
+        x: 642
+        y: 42
+        width: 29
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf48b7118cde2dfa0800000000000000
+      internalID: -5777293928420375301
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Knight Templar-Walk01_7
+      rect:
+        serializedVersion: 2
+        x: 742
+        y: 42
+        width: 29
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b101ea8299b457e0800000000000000
+      internalID: -1777591913858137679
       vertices: []
       indices: 
       edges: []
@@ -309,7 +309,15 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Knight Templar-Walk01_0: 1125982615641219489
+      Knight Templar-Walk01_1: -7559713982584943670
+      Knight Templar-Walk01_2: -275527533531397990
+      Knight Templar-Walk01_3: -2199073968385159856
+      Knight Templar-Walk01_4: -385612860125385983
+      Knight Templar-Walk01_5: 2248871265315595550
+      Knight Templar-Walk01_6: -5777293928420375301
+      Knight Templar-Walk01_7: -1777591913858137679
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

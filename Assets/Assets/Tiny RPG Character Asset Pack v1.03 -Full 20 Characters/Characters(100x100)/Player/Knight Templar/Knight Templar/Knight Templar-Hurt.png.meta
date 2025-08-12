@@ -1,19 +1,19 @@
 fileFormatVersion: 2
-guid: 40434cbb39641488a8909bd6e6a51130
+guid: e9ead6bcfc704451981b1ef2656ea928
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 173939489321871404
-    second: Knight Templar-Death_0
+      213: 8305241021776615327
+    second: Knight Templar-Hurt_0
   - first:
-      213: 1735465080116136401
-    second: Knight Templar-Death_1
+      213: -3152356076381349671
+    second: Knight Templar-Hurt_1
   - first:
-      213: 1054775793605811213
-    second: Knight Templar-Death_2
+      213: 3169031777222464709
+    second: Knight Templar-Hurt_2
   - first:
-      213: 8774045652769218200
-    second: Knight Templar-Death_3
+      213: 721876271342261782
+    second: Knight Templar-Hurt_3
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +46,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -109,12 +109,12 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Knight Templar-Death_0
+      name: Knight Templar-Hurt_0
       rect:
         serializedVersion: 2
-        x: 42
+        x: 39
         y: 42
-        width: 29
+        width: 30
         height: 19
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -124,42 +124,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: c2861714b05f96200800000000000000
-      internalID: 173939489321871404
+      spriteID: f975ffcc4b4224370800000000000000
+      internalID: 8305241021776615327
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Knight Templar-Death_1
+      name: Knight Templar-Hurt_1
       rect:
         serializedVersion: 2
-        x: 141
-        y: 41
-        width: 25
-        height: 21
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 1d9ca64ab4c951810800000000000000
-      internalID: 1735465080116136401
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Knight Templar-Death_2
-      rect:
-        serializedVersion: 2
-        x: 241
+        x: 139
         y: 42
-        width: 22
-        height: 17
+        width: 30
+        height: 19
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -168,20 +146,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: d0c1e8feef053ae00800000000000000
-      internalID: 1054775793605811213
+      spriteID: 9d8deb5b9d49044d0800000000000000
+      internalID: -3152356076381349671
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Knight Templar-Death_3
+      name: Knight Templar-Hurt_2
       rect:
         serializedVersion: 2
-        x: 341
+        x: 239
         y: 42
-        width: 21
-        height: 16
+        width: 30
+        height: 19
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -190,8 +168,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 89e9e58c80ca3c970800000000000000
-      internalID: 8774045652769218200
+      spriteID: 5c415437c99aafb20800000000000000
+      internalID: 3169031777222464709
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Knight Templar-Hurt_3
+      rect:
+        serializedVersion: 2
+        x: 339
+        y: 42
+        width: 30
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6169325e4ae940a00800000000000000
+      internalID: 721876271342261782
       vertices: []
       indices: 
       edges: []
@@ -209,7 +209,11 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Knight Templar-Hurt_0: 8305241021776615327
+      Knight Templar-Hurt_1: -3152356076381349671
+      Knight Templar-Hurt_2: 3169031777222464709
+      Knight Templar-Hurt_3: 721876271342261782
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

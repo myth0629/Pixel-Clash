@@ -133,6 +133,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   walkBobSpeed: 2
   walkBobAmount: 0.2
+  autoStopOnDuration: 1
+  walkDuration: 1.5
   animator: {fileID: 6544327869441559317}
   walkStateName: IsWalk
 --- !u!1 &3754752628920953402
@@ -161,7 +163,7 @@ Transform:
   m_GameObject: {fileID: 3754752628920953402}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -0.01, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

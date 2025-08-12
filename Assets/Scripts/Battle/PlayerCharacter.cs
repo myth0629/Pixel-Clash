@@ -43,8 +43,12 @@ public class PlayerCharacter : CharacterBase
         data  = cd;
         level = lv;
 
-        int hp  = Mathf.RoundToInt(cd.baseHp  * (1 + level * cd.hpGrowth));
-        int atk = Mathf.RoundToInt(cd.baseAtk * (1 + level * cd.atkGrowth));
+        // 곱연산 성장: base * (1 + growth)^(level - 1)
+        int effectiveLevel = Mathf.Max(1, level);
+        float hpMultiplier = Mathf.Pow(1f + cd.hpGrowth, effectiveLevel - 1);
+        float atkMultiplier = Mathf.Pow(1f + cd.atkGrowth, effectiveLevel - 1);
+        int hp  = Mathf.RoundToInt(cd.baseHp  * hpMultiplier);
+        int atk = Mathf.RoundToInt(cd.baseAtk * atkMultiplier);
 
         // SPD 개념을 hpGrowth처럼 두고 interval 산출 가능
         float interval = attackInterval; // ex) 1초 기본값

@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1001 &715111636936106695
+--- !u!1001 &7806202718198023435
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -10,11 +10,19 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 126385304568623329, guid: 45ba03411d7154fa08ad54c10e802de7, type: 3}
       propertyPath: m_SpriteTilingProperty.newSize.x
-      value: 0.28
+      value: 0.29
+      objectReference: {fileID: 0}
+    - target: {fileID: 126385304568623329, guid: 45ba03411d7154fa08ad54c10e802de7, type: 3}
+      propertyPath: m_SpriteTilingProperty.newSize.y
+      value: 0.19
       objectReference: {fileID: 0}
     - target: {fileID: 126385304568623329, guid: 45ba03411d7154fa08ad54c10e802de7, type: 3}
       propertyPath: m_SpriteTilingProperty.oldSize.x
-      value: 0.28
+      value: 0.29
+      objectReference: {fileID: 0}
+    - target: {fileID: 126385304568623329, guid: 45ba03411d7154fa08ad54c10e802de7, type: 3}
+      propertyPath: m_SpriteTilingProperty.oldSize.y
+      value: 0.19
       objectReference: {fileID: 0}
     - target: {fileID: 273926529949409103, guid: 45ba03411d7154fa08ad54c10e802de7, type: 3}
       propertyPath: m_LocalPosition.x
@@ -58,24 +66,28 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1539421002272336905, guid: 45ba03411d7154fa08ad54c10e802de7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.04
+      value: 0.06
       objectReference: {fileID: 0}
     - target: {fileID: 2404109279144821187, guid: 45ba03411d7154fa08ad54c10e802de7, type: 3}
       propertyPath: m_Name
-      value: Knight
+      value: Knight Templar
       objectReference: {fileID: 0}
     - target: {fileID: 6544327869441559317, guid: 45ba03411d7154fa08ad54c10e802de7, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 9100000, guid: 425c0fcae62574f6e9dd4bed4b2cf847, type: 2}
+      objectReference: {fileID: 9100000, guid: 9652103e00dbf4c5c87fa335cc869b6f, type: 2}
     - target: {fileID: 9030826676869635897, guid: 45ba03411d7154fa08ad54c10e802de7, type: 3}
       propertyPath: m_Size.x
-      value: 0.28
+      value: 0.29
+      objectReference: {fileID: 0}
+    - target: {fileID: 9030826676869635897, guid: 45ba03411d7154fa08ad54c10e802de7, type: 3}
+      propertyPath: m_Size.y
+      value: 0.19
       objectReference: {fileID: 0}
     - target: {fileID: 9030826676869635897, guid: 45ba03411d7154fa08ad54c10e802de7, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: -2875184811977189179, guid: 73128d5b14b5840de90381461c0cce29, type: 3}
+      objectReference: {fileID: 941554769194238170, guid: eca6ebd561f8a4223a223cb4e62b869f, type: 3}
     - target: {fileID: 9030826676869635897, guid: 45ba03411d7154fa08ad54c10e802de7, type: 3}
       propertyPath: m_WasSpriteAssigned
       value: 1
@@ -86,20 +98,20 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 2404109279144821187, guid: 45ba03411d7154fa08ad54c10e802de7, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3010517310965634158}
+      addedObject: {fileID: 6919798200382554716}
   m_SourcePrefab: {fileID: 100100000, guid: 45ba03411d7154fa08ad54c10e802de7, type: 3}
---- !u!1 &2932277219293586180 stripped
+--- !u!1 &5550731233060979912 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2404109279144821187, guid: 45ba03411d7154fa08ad54c10e802de7, type: 3}
-  m_PrefabInstance: {fileID: 715111636936106695}
+  m_PrefabInstance: {fileID: 7806202718198023435}
   m_PrefabAsset: {fileID: 0}
---- !u!212 &3010517310965634158
+--- !u!212 &6919798200382554716
 SpriteRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2932277219293586180}
+  m_GameObject: {fileID: 5550731233060979912}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0

@@ -51,9 +51,12 @@ public class UpgradeCharacterItem : MonoBehaviour
     {
         if (characterData == null) return (0, 0);
         
-        // PlayerCharacter.Setup()와 동일한 계산 방식 사용
-        int hp = Mathf.RoundToInt(characterData.baseHp * (1 + level * characterData.hpGrowth));
-        int atk = Mathf.RoundToInt(characterData.baseAtk * (1 + level * characterData.atkGrowth));
+        // 곱연산 성장: base * (1 + growth)^(level - 1)
+        int lv = Mathf.Max(1, level);
+        float hpMultiplier = Mathf.Pow(1f + characterData.hpGrowth, lv - 1);
+        float atkMultiplier = Mathf.Pow(1f + characterData.atkGrowth, lv - 1);
+        int hp = Mathf.RoundToInt(characterData.baseHp * hpMultiplier);
+        int atk = Mathf.RoundToInt(characterData.baseAtk * atkMultiplier);
         
         return (hp, atk);
     }
@@ -97,7 +100,7 @@ public class UpgradeCharacterItem : MonoBehaviour
         {
             if (isMaxLevel)
             {
-                upgradeCostText.text = "MAX LEVEL";
+                upgradeCostText.text = "MAX Lv";
                 upgradeCostText.color = Color.yellow;
             }
             else

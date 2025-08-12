@@ -1192,7 +1192,18 @@ public class GameUIManager : MonoBehaviour
 
         bool canAfford = GameDataManager.Instance != null && GameDataManager.Instance.CurrentGold >= nextCost;
         if (confirmPurchaseButton != null)
+        {
             confirmPurchaseButton.interactable = canAfford;
+            // 스킬 업그레이드 전용 리스너로 재설정 (중복 방지)
+            confirmPurchaseButton.onClick.RemoveAllListeners();
+            confirmPurchaseButton.onClick.AddListener(OnConfirmSkillUpgrade);
+        }
+
+        if (cancelPurchaseButton != null)
+        {
+            cancelPurchaseButton.onClick.RemoveAllListeners();
+            cancelPurchaseButton.onClick.AddListener(OnCancelSkillUpgrade);
+        }
 
         purchaseConfirmPanel.SetActive(true);
     }
@@ -1450,6 +1461,7 @@ public class GameUIManager : MonoBehaviour
     if (GameDataManager.Instance != null && GameDataManager.Instance.SpendGold(upgradeCost))
         {
             // 레벨업 실행
+            SetCharacterLevel(pendingUpgradeCharacter, currentLevel + 1);
             
             Debug.Log($"{pendingUpgradeCharacter.displayName} 레벨업: {currentLevel} → {currentLevel + 1}, 비용: {upgradeCost} 골드");
             
@@ -1713,7 +1725,6 @@ public class GameUIManager : MonoBehaviour
         if (confirmPurchaseButton != null)
         {
             confirmPurchaseButton.onClick.RemoveAllListeners();
-            
             // 현재 컨텍스트에 따라 적절한 리스너 연결
             switch (currentPopupContext)
             {
@@ -1722,6 +1733,9 @@ public class GameUIManager : MonoBehaviour
                     break;
                 case PopupContext.Upgrade:
                     confirmPurchaseButton.onClick.AddListener(OnConfirmUpgrade);
+                    break;
+                case PopupContext.UpgradeSkill:
+                    confirmPurchaseButton.onClick.AddListener(OnConfirmSkillUpgrade);
                     break;
             }
         }

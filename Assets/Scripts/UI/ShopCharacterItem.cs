@@ -10,7 +10,10 @@ public class ShopCharacterItem : MonoBehaviour
     [Header("UI 요소들")]
     [SerializeField] private Image characterIcon;
     [SerializeField] private TMPro.TextMeshProUGUI characterNameText;
-    [SerializeField] private TMPro.TextMeshProUGUI characterStatsText;
+    [SerializeField] private TMPro.TextMeshProUGUI characterStatsText; // 구형(통합) 표기 - 분리 필드가 없을 때만 사용
+    [Header("스탯 표시 (분리)")]
+    [SerializeField] private TMPro.TextMeshProUGUI currentAttackText; // 현재 공격력 표시
+    [SerializeField] private TMPro.TextMeshProUGUI currentHealthText; // 현재 체력 표시
     [SerializeField] private TMPro.TextMeshProUGUI priceText;
     [SerializeField] private Button purchaseButton;
     [SerializeField] private GameObject lockedOverlay;  // 잠금 상태 오버레이
@@ -42,9 +45,18 @@ public class ShopCharacterItem : MonoBehaviour
             characterNameText.text = baseName + GetPositionBadge(character.position);
         }
 
-        if (characterStatsText != null)
+        // 스탯 표기: 분리 필드가 연결되어 있으면 우선 사용, 아니면 통합 텍스트 사용
+        bool hasSeparated = (currentAttackText != null) || (currentHealthText != null);
+        if (hasSeparated)
         {
-            characterStatsText.text = $"HP: {character.baseHp}\nATK: {character.baseAtk}";
+            if (currentAttackText != null) currentAttackText.text = $"{character.baseAtk}";
+            if (currentHealthText != null) currentHealthText.text = $"{character.baseHp}";
+            if (characterStatsText != null) characterStatsText.gameObject.SetActive(false);
+        }
+        else if (characterStatsText != null)
+        {
+            characterStatsText.gameObject.SetActive(true);
+            characterStatsText.text = $"공격력: {character.baseAtk}\n체력: {character.baseHp}";
         }
 
         // 캐릭터 아이콘 설정 (있다면)
@@ -114,10 +126,9 @@ public class ShopCharacterItem : MonoBehaviour
             characterNameText.color = contentColor;
         }
         
-        if (characterStatsText != null)
-        {
-            characterStatsText.color = contentColor;
-        }
+    if (characterStatsText != null) characterStatsText.color = contentColor;
+    if (currentAttackText != null) currentAttackText.color = contentColor;
+    if (currentHealthText != null) currentHealthText.color = contentColor;
         
         if (priceText != null)
         {
