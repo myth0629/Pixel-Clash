@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 093275ac3892d43be9098916d19e3225, type: 3}
-  m_Name: Knight Templar
+  m_Name: Lancer
   m_EditorClassIdentifier: 
-  id: 4
-  displayName: "\uC131\uAE30\uC0AC"
-  icon: {fileID: 941554769194238170, guid: eca6ebd561f8a4223a223cb4e62b869f, type: 3}
-  prefab: {fileID: 5550731233060979912, guid: bf9059fdac71d47aea666056670eff03, type: 3}
-  baseHp: 70
-  hpGrowth: 0.25
-  baseAtk: 6
+  id: 5
+  displayName: "\uAE30\uBCD1"
+  icon: {fileID: 3465079563596065642, guid: 2b8a36dfc65b24cdebbb4e4c974acaf1, type: 3}
+  prefab: {fileID: 7165457560185037354, guid: 7a263b914466d487f85cc9a5ad1ada86, type: 3}
+  baseHp: 60
+  hpGrowth: 0.2
+  baseAtk: 7
   atkGrowth: 0.2
-  unlockCost: 2000
+  unlockCost: 2500
   position: 0
   skills: []

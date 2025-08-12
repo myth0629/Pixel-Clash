@@ -166,12 +166,6 @@ public class ShopCharacterItem : MonoBehaviour
                 {
                     colors.normalColor = Color.red;
                     
-                    // 버튼 텍스트도 변경
-                    TMPro.TextMeshProUGUI buttonText = purchaseButton.GetComponentInChildren<TMPro.TextMeshProUGUI>();
-                    if (buttonText != null)
-                    {
-                        buttonText.text = "골드 부족";
-                    }
                 }
                 purchaseButton.colors = colors;
             }

@@ -21,7 +21,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 6f81bffceff7b4403ac71d4f4bbc29fc, type: 2}
+  m_Motion: {fileID: 7400000, guid: bf342ebabaaff492baa40728b0159f96, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -108,7 +108,7 @@ AnimatorController:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Knight Templar
+  m_Name: Lancer
   serializedVersion: 5
   m_AnimatorParameters:
   - m_Name: Attack
@@ -207,7 +207,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 6d1f0b800f47048b5a267452742a9faf, type: 2}
+  m_Motion: {fileID: 7400000, guid: aa2640653ab59426fbac5a67080d887a, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -235,7 +235,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: b9569fbce31114f629fa427337eb38b7, type: 2}
+  m_Motion: {fileID: 7400000, guid: c18ae328c0a0e4f9c87bef2a62140572, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
