@@ -49,7 +49,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -234,7 +234,12 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Swordsman-Hurt_0: -5197095603046038307
+      Swordsman-Hurt_1: 5734906538670003662
+      Swordsman-Hurt_2: -4849489564484598224
+      Swordsman-Hurt_3: -4120147093065983671
+      Swordsman-Hurt_4: -1552510417651852173
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

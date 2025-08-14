@@ -46,7 +46,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -209,7 +209,11 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Priest-Hurt_0: -7036102898719245814
+      Priest-Hurt_1: -3276610263806563028
+      Priest-Hurt_2: -3412415616238721831
+      Priest-Hurt_3: 3320391658436172315
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

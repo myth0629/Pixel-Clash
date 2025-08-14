@@ -35,6 +35,10 @@ public class GameUIManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Image partySlot2Icon;
     [SerializeField] private TMPro.TextMeshProUGUI partySlot1Text;
     [SerializeField] private TMPro.TextMeshProUGUI partySlot2Text;
+    [SerializeField] private TMPro.TextMeshProUGUI partySlot1AttackText; // 전방 슬롯 공격력 표시
+    [SerializeField] private TMPro.TextMeshProUGUI partySlot1HealthText; // 전방 슬롯 체력 표시
+    [SerializeField] private TMPro.TextMeshProUGUI partySlot2AttackText; // 후방 슬롯 공격력 표시
+    [SerializeField] private TMPro.TextMeshProUGUI partySlot2HealthText; // 후방 슬롯 체력 표시
     
     [Header("캐릭터 선택")]
     [SerializeField] private GameObject characterSelectionPanel; // 캐릭터 선택 창
@@ -484,6 +488,19 @@ public class GameUIManager : MonoBehaviour
             int characterLevel = GetCharacterLevel(character);
             if (nameText != null)
                 nameText.text = $"{character.displayName} (Lv.{characterLevel})";
+
+            // 현재 레벨 기준 스탯 계산 및 표시
+            var (hp, atk) = CalculateCharacterStats(character, characterLevel);
+            if (slotIndex == 0)
+            {
+                if (partySlot1AttackText != null) partySlot1AttackText.text = atk.ToString();
+                if (partySlot1HealthText != null) partySlot1HealthText.text = hp.ToString();
+            }
+            else if (slotIndex == 1)
+            {
+                if (partySlot2AttackText != null) partySlot2AttackText.text = atk.ToString();
+                if (partySlot2HealthText != null) partySlot2HealthText.text = hp.ToString();
+            }
                 
             if (iconImage != null && character.icon != null)
             {
@@ -499,6 +516,18 @@ public class GameUIManager : MonoBehaviour
             // 빈 슬롯인 경우
             if (nameText != null)
                 nameText.text = "클릭하여 선택";
+
+            // 스탯 텍스트 초기화
+            if (slotIndex == 0)
+            {
+                if (partySlot1AttackText != null) partySlot1AttackText.text = "-";
+                if (partySlot1HealthText != null) partySlot1HealthText.text = "-";
+            }
+            else if (slotIndex == 1)
+            {
+                if (partySlot2AttackText != null) partySlot2AttackText.text = "-";
+                if (partySlot2HealthText != null) partySlot2HealthText.text = "-";
+            }
                 
             if (iconImage != null)
             {
@@ -509,6 +538,18 @@ public class GameUIManager : MonoBehaviour
                 iconImage.color = color;
             }
         }
+    }
+
+    /// <summary>곱연산 성장 공식으로 스탯 계산</summary>
+    private (int hp, int atk) CalculateCharacterStats(CharacterData cd, int level)
+    {
+        if (cd == null) return (0, 0);
+        int lv = Mathf.Max(1, level);
+        float hpMul = Mathf.Pow(1f + cd.hpGrowth, lv - 1);
+        float atkMul = Mathf.Pow(1f + cd.atkGrowth, lv - 1);
+        int hp = Mathf.RoundToInt(cd.baseHp * hpMul);
+        int atk = Mathf.RoundToInt(cd.baseAtk * atkMul);
+        return (hp, atk);
     }
 
     /// <summary>게임 UI 표시</summary>
