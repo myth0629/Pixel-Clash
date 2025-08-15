@@ -81,7 +81,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -2253911629886400664, guid: 37195940029f14705b4fcf31a5801784, type: 3}
       propertyPath: m_Name
-      value: Orc
+      value: Sprite
       objectReference: {fileID: 0}
     - target: {fileID: 3626916397498700004, guid: 37195940029f14705b4fcf31a5801784, type: 3}
       propertyPath: m_FlipX

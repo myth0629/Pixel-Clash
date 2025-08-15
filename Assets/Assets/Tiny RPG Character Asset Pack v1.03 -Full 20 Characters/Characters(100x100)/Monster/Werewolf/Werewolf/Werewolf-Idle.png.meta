@@ -52,7 +52,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -259,7 +259,13 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Werewolf-Idle_0: 4565372846758268570
+      Werewolf-Idle_1: -5431055816626353104
+      Werewolf-Idle_2: 4981596948431694777
+      Werewolf-Idle_3: 7992208743141392169
+      Werewolf-Idle_4: 9217762701747348682
+      Werewolf-Idle_5: -8424546917131734541
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

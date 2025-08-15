@@ -46,7 +46,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -209,7 +209,11 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Slime-Hurt_0: -7749777930331861276
+      Slime-Hurt_1: -8746592011375269112
+      Slime-Hurt_2: 4191326187784098674
+      Slime-Hurt_3: 5317551540973683370
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

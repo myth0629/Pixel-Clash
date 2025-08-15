@@ -88,7 +88,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -159,7 +159,7 @@ TextureImporter:
         width: 33
         height: 21
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -181,7 +181,7 @@ TextureImporter:
         width: 33
         height: 22
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -203,7 +203,7 @@ TextureImporter:
         width: 32
         height: 22
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -225,7 +225,7 @@ TextureImporter:
         width: 32
         height: 22
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -247,7 +247,7 @@ TextureImporter:
         width: 21
         height: 30
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -269,7 +269,7 @@ TextureImporter:
         width: 16
         height: 31
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -288,10 +288,10 @@ TextureImporter:
         serializedVersion: 2
         x: 645
         y: 41
-        width: 16
-        height: 21
+        width: 46
+        height: 37
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -305,72 +305,6 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Greatsword Skeleton-Attack02_7
-      rect:
-        serializedVersion: 2
-        x: 663
-        y: 62
-        width: 10
-        height: 17
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: be7d497cf90c6f960800000000000000
-      internalID: 7635502010734008299
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Greatsword Skeleton-Attack02_8
-      rect:
-        serializedVersion: 2
-        x: 666
-        y: 58
-        width: 18
-        height: 17
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c81b837d7363db770800000000000000
-      internalID: 8628112074573656460
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Greatsword Skeleton-Attack02_9
-      rect:
-        serializedVersion: 2
-        x: 670
-        y: 54
-        width: 20
-        height: 13
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 45a6c8f3e50acd950800000000000000
-      internalID: 6475226690905467476
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: Greatsword Skeleton-Attack02_10
       rect:
         serializedVersion: 2
@@ -379,7 +313,7 @@ TextureImporter:
         width: 52
         height: 26
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -401,7 +335,7 @@ TextureImporter:
         width: 51
         height: 21
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -420,10 +354,10 @@ TextureImporter:
         serializedVersion: 2
         x: 945
         y: 40
-        width: 33
+        width: 51
         height: 22
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -445,7 +379,7 @@ TextureImporter:
         width: 32
         height: 22
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -467,7 +401,7 @@ TextureImporter:
         width: 25
         height: 20
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -480,77 +414,11 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
-    - serializedVersion: 2
-      name: Greatsword Skeleton-Attack02_15
-      rect:
-        serializedVersion: 2
-        x: 661
-        y: 51
-        width: 6
-        height: 7
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: de0a2dff1e72f90e0800000000000000
-      internalID: -2261044636303580947
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Greatsword Skeleton-Attack02_16
-      rect:
-        serializedVersion: 2
-        x: 668
-        y: 49
-        width: 24
-        height: 9
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c3a38a372d67aa760800000000000000
-      internalID: 7469913578203003452
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Greatsword Skeleton-Attack02_17
-      rect:
-        serializedVersion: 2
-        x: 984
-        y: 41
-        width: 12
-        height: 6
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6ce92176d45682020800000000000000
-      internalID: 2317213391398280902
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 239a6e5b44c334c829607b0bb05db85d
     internalID: 0
     vertices: []
     indices: 
@@ -559,7 +427,25 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Greatsword Skeleton-Attack02_0: 927360332485938838
+      Greatsword Skeleton-Attack02_1: -7277744865043229210
+      Greatsword Skeleton-Attack02_10: 85067558378926377
+      Greatsword Skeleton-Attack02_11: -5864307165115557782
+      Greatsword Skeleton-Attack02_12: -186301200928796000
+      Greatsword Skeleton-Attack02_13: 6272818144793376373
+      Greatsword Skeleton-Attack02_14: -2541496089976469969
+      Greatsword Skeleton-Attack02_15: -2261044636303580947
+      Greatsword Skeleton-Attack02_16: 7469913578203003452
+      Greatsword Skeleton-Attack02_17: 2317213391398280902
+      Greatsword Skeleton-Attack02_2: 8936567366031344445
+      Greatsword Skeleton-Attack02_3: 5039528978129295877
+      Greatsword Skeleton-Attack02_4: 8800460226854289968
+      Greatsword Skeleton-Attack02_5: 170769846889858129
+      Greatsword Skeleton-Attack02_6: 786702109089999689
+      Greatsword Skeleton-Attack02_7: 7635502010734008299
+      Greatsword Skeleton-Attack02_8: 8628112074573656460
+      Greatsword Skeleton-Attack02_9: 6475226690905467476
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

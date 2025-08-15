@@ -64,7 +64,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -135,7 +135,7 @@ TextureImporter:
         width: 30
         height: 25
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -154,10 +154,10 @@ TextureImporter:
         serializedVersion: 2
         x: 143
         y: 42
-        width: 19
+        width: 37
         height: 27
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -171,81 +171,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Elite Orc-Death_2
-      rect:
-        serializedVersion: 2
-        x: 162
-        y: 50
-        width: 13
-        height: 16
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 97f9364b6d6b66fb0800000000000000
-      internalID: -4654832131575144583
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Elite Orc-Death_3
-      rect:
-        serializedVersion: 2
-        x: 171
-        y: 52
-        width: 10
-        height: 10
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 11620eb070088f3b0800000000000000
-      internalID: -5478488178943842799
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Elite Orc-Death_4
-      rect:
-        serializedVersion: 2
-        x: 240
-        y: 54
-        width: 9
-        height: 7
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: cf76627a567ac8f10800000000000000
-      internalID: 2273375966953105404
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: Elite Orc-Death_5
       rect:
         serializedVersion: 2
-        x: 247
+        x: 241
         y: 42
-        width: 19
+        width: 46
         height: 23
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -259,59 +193,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Elite Orc-Death_6
-      rect:
-        serializedVersion: 2
-        x: 266
-        y: 45
-        width: 13
-        height: 16
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b7de49b37c39892d0800000000000000
-      internalID: -3271702645377274501
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Elite Orc-Death_7
-      rect:
-        serializedVersion: 2
-        x: 277
-        y: 49
-        width: 10
-        height: 10
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 5d8cf1da8ee4a3dd0800000000000000
-      internalID: -2505603481434339115
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: Elite Orc-Death_8
       rect:
         serializedVersion: 2
         x: 346
         y: 42
-        width: 23
+        width: 35
         height: 17
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -324,33 +214,11 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
-    - serializedVersion: 2
-      name: Elite Orc-Death_9
-      rect:
-        serializedVersion: 2
-        x: 366
-        y: 42
-        width: 16
-        height: 11
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 1a53bbda52039fef0800000000000000
-      internalID: -73974980488251999
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: b0d5d45e68e814987a51fbbf942c81dc
     internalID: 0
     vertices: []
     indices: 
@@ -359,7 +227,17 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Elite Orc-Death_0: 5065144218681336704
+      Elite Orc-Death_1: -5670242377288045739
+      Elite Orc-Death_2: -4654832131575144583
+      Elite Orc-Death_3: -5478488178943842799
+      Elite Orc-Death_4: 2273375966953105404
+      Elite Orc-Death_5: 2103512864479474475
+      Elite Orc-Death_6: -3271702645377274501
+      Elite Orc-Death_7: -2505603481434339115
+      Elite Orc-Death_8: 6013396189072918827
+      Elite Orc-Death_9: -73974980488251999
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -46,7 +46,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -209,7 +209,11 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Werebear-Death_0: 8797442844104381538
+      Werebear-Death_1: 5838295516507310939
+      Werebear-Death_2: 4753422918887629668
+      Werebear-Death_3: -8469408634937088824
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
