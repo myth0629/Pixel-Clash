@@ -1,4 +1,5 @@
 using UnityEditor.U2D.Animation;
+using PixelClash.Data;
 using UnityEngine;
 using System.Collections;
 
@@ -53,7 +54,29 @@ public class PlayerCharacter : CharacterBase
         // SPD 개념을 hpGrowth처럼 두고 interval 산출 가능
         float interval = attackInterval; // ex) 1초 기본값
 
+        Debug.Log($"[PlayerCharacter] Setup: {cd.displayName} Lv.{lv}, hp={hp}, atk={atk}");
         InitStats(hp, atk, interval);
+        Debug.Log($"[PlayerCharacter] After InitStats: Attack={Attack}");
+
+        // 스킬 바인딩: 캐릭터 레벨 기준 해금 (Animator가 있는 GameObject에 부착하여 이벤트 일치)
+        var targetGo = animator != null ? animator.gameObject : this.gameObject;
+        var skillCtrl = targetGo.GetComponent<SkillController>();
+        if (skillCtrl == null) skillCtrl = targetGo.AddComponent<SkillController>();
+        
+        // SkillController의 _owner를 수동으로 설정 (타이밍 문제 해결)
+        skillCtrl.SetOwner(this);
+        
+        if (cd.skills != null && cd.skills.Count > 0)
+        {
+            var unlocked = new System.Collections.Generic.List<PixelClash.Data.SkillData>();
+            foreach (var su in cd.skills)
+            {
+                if (su.requiredLevel <= level && su.skill != null)
+                    unlocked.Add(su.skill);
+            }
+            skillCtrl.BindSkills(unlocked);
+            Debug.Log($"[PlayerCharacter] 스킬 바인딩 완료: {unlocked.Count}개 스킬");
+        }
     }
     
     protected override void Update()
@@ -147,7 +170,10 @@ public class PlayerCharacter : CharacterBase
     public void StartCombat()
     {
         canAttack = true;
-        Debug.Log($"[{gameObject.name}] 전투 시작!");
+        // 모든 하위 SkillController 활성화 (Animator에 부착된 컴포넌트 포함)
+        var scList = GetComponentsInChildren<SkillController>(true);
+        foreach (var sc in scList) sc.StartCombat();
+        Debug.Log($"[{gameObject.name}] 전투 시작! Attack={Attack}, SkillControllers={scList.Length}개");
     }
     
     /// <summary>새로운 라운드 시작 시 호출 - 전투 준비</summary>
@@ -165,6 +191,8 @@ public class PlayerCharacter : CharacterBase
     public void StopCombat()
     {
         canAttack = false;
+    var scList = GetComponentsInChildren<SkillController>(true);
+    foreach (var sc in scList) sc.StopCombat();
         Debug.Log($"[{gameObject.name}] 전투 중지 - 라운드 완료");
     }
 }

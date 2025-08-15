@@ -20,6 +20,7 @@ public class StageManager : MonoBehaviour
     [SerializeField] private float stageHpMultiplier = 1.2f;
     [SerializeField] private float stageAtkMultiplier = 1.15f;
     [SerializeField] private int roundEnemyIncrease = 1; // 라운드당 적 증가수
+    [SerializeField] private ScriptableObject stageMonsterConfig; // 스테이지별 몬스터 구성 (StageMonsterConfig를 할당)
 
     // 이벤트
     public static event Action<int, int> OnStageStart; // stage, round
@@ -236,6 +237,27 @@ public class StageManager : MonoBehaviour
     public int GetEnemyCountForCurrentRound()
     {
         return enemiesPerRound + (currentRound - 1) * roundEnemyIncrease;
+    }
+
+    /// <summary>현재 스테이지/라운드의 몬스터 풀 반환 (없으면 null)</summary>
+    public MonsterData[] GetMonsterPoolForCurrentRound()
+    {
+        if (stageMonsterConfig == null) return null;
+
+        // 리플렉션으로 StageMonsterConfig.GetMonsterPool(int,int) 호출
+        var type = stageMonsterConfig.GetType();
+        var method = type.GetMethod("GetMonsterPool", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+        if (method == null) return null;
+        try
+        {
+            var result = method.Invoke(stageMonsterConfig, new object[] { currentStage, currentRound }) as MonsterData[];
+            return result;
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"StageMonsterConfig 호출 실패: {e.Message}");
+            return null;
+        }
     }
 
     /// <summary>스테이지에 따른 스탯 배율 계산</summary>

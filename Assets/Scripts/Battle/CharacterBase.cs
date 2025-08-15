@@ -22,6 +22,7 @@ public abstract class CharacterBase : MonoBehaviour
 
     public int CurrentHp => currentHp;
     public int MaxHp     => maxHp;
+    public int Attack    => atk; // 스킬/UI에서 현재 공격력 참조 용도
 
     // ---------- 유니티 라이프사이클 ----------
     protected virtual void Update()
@@ -44,6 +45,7 @@ public abstract class CharacterBase : MonoBehaviour
         currentHp  = hp;
         this.atk   = atk;
         attackInterval = interval;
+        Debug.Log($"[CharacterBase] {gameObject.name} InitStats: hp={hp}, atk={atk}, Attack property={Attack}");
         OnHealthChanged?.Invoke(currentHp, maxHp);
     }
 

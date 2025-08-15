@@ -12,16 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 14f5991547650437cb354c991f78e9dc, type: 3}
   m_Name: Greatsword Skeleton
   m_EditorClassIdentifier: 
-  monsterName: "\uBAAC\uC2A4\uD130"
+  monsterName: "\uD574\uACE8 \uAC80\uC0AC"
   description: "\uBAAC\uC2A4\uD130 \uC124\uBA85"
-  icon: {fileID: 0}
-  prefab: {fileID: 0}
+  icon: {fileID: -6428129625516625643, guid: f0a884b53490e4ad1965e9441d91d2bb, type: 3}
+  prefab: {fileID: 7179298865032503881, guid: 93f239604fff04e4fb95a4bd1c9b39c4, type: 3}
   baseHp: 30
-  baseAtk: 5
-  attackInterval: 1.2
+  baseAtk: 7
+  attackInterval: 1.5
   hpPerWave: 10
   atkPerWave: 3
   maxScalingWave: 10
-  expReward: 15
-  goldReward: 10
+  expReward: 30
+  goldReward: 100
   targetPriority: 0

@@ -338,6 +338,105 @@ private bool ValidatePartyBeforeBattle()
 - **에러 핸들링 추가**: null 체크 및 예외 상황 대응
 - **디버그 로그 체계화**: 문제 추적을 위한 상세 로깅
 
+## 🧠 스킬 시스템 (자동 시전 + 애니메이션 이벤트)
+
+### 구성 요소 개요
+- 데이터: `SkillData` (쿨타임, 계수, 트리거, 평탄 보너스)
+- 런타임: `SkillRuntime`(쿨타임 관리), `SkillController`(자동 시전/타겟팅/이벤트 처리)
+- 배치: 각 유닛의 Animator가 있는 GameObject에 `SkillController`를 부착하고 스킬 바인딩
+
+### SkillData 필수 필드
+```csharp
+// PixelClash.Data.SkillData (요약)
+public enum SkillType { Damage, Heal }
+public enum SkillTarget { SingleEnemy, AllEnemies, SingleAlly, AllAllies, Self }
+
+public float cooldown;
+public float powerMultiplier;  // 최종 공격력 계수
+public string animatorTrigger; // 스킬 시작 트리거
+public int flatBonusDamage;    // 선택: 고정 대미지 보정
+public int flatBonusHeal;      // 선택: 고정 힐 보정
+// minDamage/minHeal 제거됨: 최소 1 보정만 런타임에서 처리
+```
+
+### 자동 시전 및 쿨타임 흐름
+```csharp
+// SkillController.Update()
+// - 전투 중(active && BattleManager.IsBattleRunning)일 때만 쿨타임 Tick
+// - 준비된 스킬부터 TryCast() 실행 → Animator.Trigger(animatorTrigger)
+// - PendingCast를 기록(시전자, 예상 타겟, 만료시간)
+```
+
+### 애니메이션 이벤트 연동(중요)
+```csharp
+// 애니메이션 이벤트에서 호출
+public void OnSkillImpact();   // 타격 타이밍마다 호출 가능(멀티 히트)
+public void OnSkillCastEnd();  // 마지막 프레임에서 1회 호출
+```
+- 멀티 히트: 하나의 스킬 클립에 여러 개의 `OnSkillImpact` 이벤트를 배치 가능
+- 종료 처리: `OnSkillCastEnd()`에서 PendingCast 정리
+
+### 대미지/회복 계산 규칙
+```csharp
+// 항상 '임팩트 시점'에 재계산
+int atk = owner.Attack; // CharacterBase.Attack 게터 사용
+int amount = Mathf.CeilToInt(atk * powerMultiplier) + flatBonus; // flatBonusDamage/Heal
+amount = Mathf.Max(1, amount); // 대미지 최소 1, 힐은 데이터에 맞게 적용
+```
+- 일반 공격과 동일하게 “타격 타이밍”의 Attack을 사용하므로 버프/디버프가 반영됩니다.
+
+### 타겟팅 규칙(요약)
+- 시전자 기준 아군/적군 분기 처리: 플레이어 → Enemy, 적 → Player
+- `SkillTarget`에 따라 단일/전체, 자기 자신 선택
+- 필요 시 임팩트 시점에 재타겟팅(대상 사망/교체 대응)
+
+### 컴포넌트 배치/수명주기 팁
+- SkillController는 Animator가 붙은 GameObject에 부착
+- 유닛이 전투 시작/종료 시 `StartCombat()/StopCombat()`을 통해 활성/비활성 동기화
+- 디버그: `debugSkillLog` 토글로 시전, 타격, 계산 로그 확인
+
+### 애니메이션 클립 설정 체크리스트
+1) 스킬 시작 프레임에 Animator Trigger 연결(`animatorTrigger`)
+2) 타격 타이밍마다 `OnSkillImpact` 이벤트 추가
+3) 마지막 프레임에 `OnSkillCastEnd` 이벤트 1회 추가
+
+## 🗺️ 스테이지별 몬스터 구성 (StageMonsterConfig)
+
+### 목적
+스테이지/라운드별로 출현 몬스터 풀을 유연하게 정의하고, 미정의 시 상위/글로벌 풀로 폴백합니다.
+
+### ScriptableObject 구조(요약)
+```csharp
+[CreateAssetMenu(menuName="Stage Monster Config")]
+public class StageMonsterConfig : ScriptableObject {
+    [Serializable] public class RoundEntry { public int round; public List<MonsterData> monsters; }
+    [Serializable] public class StageEntry { public int stage; public List<MonsterData> defaultMonsters; public List<RoundEntry> rounds; }
+
+    public List<MonsterData> globalDefaultMonsters;
+    public List<StageEntry> stages;
+
+    // GetMonsterPool(stage, round): round → stage → global 순으로 폴백
+}
+```
+
+### StageManager 연동
+- 인스펙터에 `StageMonsterConfig` 할당(필드 타입은 ScriptableObject로 보유 가능)
+- 런타임에 `GetMonsterPool(stage, round)`를 호출(필요 시 리플렉션 사용)해 현재 라운드 몬스터 풀 획득
+
+### BattleManager 스폰 연계
+- 웨이브 스폰 시 StageManager에서 받은 몬스터 풀을 사용
+- 풀 미지정 시 기존 기본 리스트로 폴백하여 안전성 유지
+
+### 에디터 설정 가이드
+1) Project View에서 StageMonsterConfig 에셋 생성 및 열기
+2) Global Default 혹은 Stage/Round 별 몬스터 리스트 채우기
+3) `StageManager` 인스펙터의 Config 슬롯에 해당 에셋 할당
+4) 테스트 플레이로 라운드별 스폰 확인
+
+### 디버그 팁
+- 스폰이 비면: 해당 Round 미지정 → Stage Default → Global Default 순으로 채워지는지 확인
+- 라운드 진행 중 교체만 이루어지고 배경은 유지(정책: 라운드 전환 시 스크롤 없음)
+
 ## 🎯 완료된 주요 기능들
 
 ### ✅ 핵심 게임플레이
@@ -363,6 +462,10 @@ private bool ValidatePartyBeforeBattle()
 - PlayerPrefs 영구 데이터 저장
 - 메모리 누수 방지 시스템
 - 이벤트 기반 느슨한 결합
+
+### ✅ 전투 확장
+- 스킬 시스템: 자동 시전, 애니메이션 이벤트 임팩트, 멀티 히트, atk 기반 계산(ceil + flat)
+- 스테이지 몬스터 구성: Stage/Round 풀 + 폴백 계층(Global → Stage → Round)
 
 ## 🚀 아키텍처 완성도
 

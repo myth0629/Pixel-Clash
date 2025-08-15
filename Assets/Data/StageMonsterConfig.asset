@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1bb25720afb9542a6982a25f249147c8, type: 3}
+  m_Name: StageMonsterConfig
+  m_EditorClassIdentifier: 
+  globalDefaultMonsters:
+  - {fileID: 11400000, guid: 9939cfbe3c6234c87b2d4a17677234a2, type: 2}
+  - {fileID: 11400000, guid: 88df0e870306f4fbfabf5ecd711c1570, type: 2}
+  - {fileID: 11400000, guid: 0aa32e17c0cbb42469808b9d77f0aeb3, type: 2}
+  - {fileID: 11400000, guid: 433f34be028f944008fcc55e5814b734, type: 2}
+  - {fileID: 11400000, guid: 0b9f5be3c03344aa3a5c787a2e3eed53, type: 2}
+  - {fileID: 11400000, guid: 036bf29603d3c4320b1c4b8f9a709831, type: 2}
+  - {fileID: 11400000, guid: bed7e3e5f6a72445ea8f3bc465d59f91, type: 2}
+  - {fileID: 11400000, guid: f8586fba760104eec9543ceb0c38f855, type: 2}
+  - {fileID: 11400000, guid: cdb0bc848c3b24428844fba0f5fa2a7f, type: 2}
+  - {fileID: 11400000, guid: fe51109f759354682815c34c11b9fac6, type: 2}
+  - {fileID: 11400000, guid: 38804d497790044fe8536eccf951837e, type: 2}
+  stages:
+  - stageNumber: 1
+    defaultMonsters:
+    - {fileID: 11400000, guid: cdb0bc848c3b24428844fba0f5fa2a7f, type: 2}
+    - {fileID: 11400000, guid: fe51109f759354682815c34c11b9fac6, type: 2}
+    - {fileID: 11400000, guid: 38804d497790044fe8536eccf951837e, type: 2}
+    rounds:
+    - roundNumber: 5
+      monsters:
+      - {fileID: 11400000, guid: fe51109f759354682815c34c11b9fac6, type: 2}
+      - {fileID: 11400000, guid: 38804d497790044fe8536eccf951837e, type: 2}
+  - stageNumber: 2
+    defaultMonsters:
+    - {fileID: 11400000, guid: 0b9f5be3c03344aa3a5c787a2e3eed53, type: 2}
+    - {fileID: 11400000, guid: 9939cfbe3c6234c87b2d4a17677234a2, type: 2}
+    - {fileID: 11400000, guid: 036bf29603d3c4320b1c4b8f9a709831, type: 2}
+    rounds:
+    - roundNumber: 5
+      monsters:
+      - {fileID: 11400000, guid: 036bf29603d3c4320b1c4b8f9a709831, type: 2}
+      - {fileID: 11400000, guid: 0aa32e17c0cbb42469808b9d77f0aeb3, type: 2}
+  - stageNumber: 3
+    defaultMonsters:
+    - {fileID: 11400000, guid: bed7e3e5f6a72445ea8f3bc465d59f91, type: 2}
+    - {fileID: 11400000, guid: f8586fba760104eec9543ceb0c38f855, type: 2}
+    - {fileID: 11400000, guid: 88df0e870306f4fbfabf5ecd711c1570, type: 2}
+    rounds:
+    - roundNumber: 5
+      monsters:
+      - {fileID: 11400000, guid: 88df0e870306f4fbfabf5ecd711c1570, type: 2}
+      - {fileID: 11400000, guid: 433f34be028f944008fcc55e5814b734, type: 2}

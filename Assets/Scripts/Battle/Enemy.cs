@@ -60,6 +60,14 @@ public class Enemy : CharacterBase
         
         (int hp, int atk) = data.GetScaledStats(waveNumber);
         InitStats(hp, atk, data.attackInterval);
+
+        // 스킬 바인딩 (있을 경우)
+        if (data.skills != null && data.skills.Length > 0)
+        {
+            var skillCtrl = gameObject.GetComponent<SkillController>();
+            if (skillCtrl == null) skillCtrl = gameObject.AddComponent<SkillController>();
+            skillCtrl.BindSkills(data.skills);
+        }
     }
 
     // 기존 호환성을 위한 오버로드
@@ -244,6 +252,8 @@ public class Enemy : CharacterBase
     public void StartCombat()
     {
         canAttack = true;
+    var sc = GetComponent<SkillController>();
+    if (sc != null) sc.StartCombat();
         Debug.Log($"[{gameObject.name}] 전투 시작!");
     }
 }

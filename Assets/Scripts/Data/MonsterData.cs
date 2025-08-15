@@ -1,4 +1,5 @@
 using UnityEngine;
+using PixelClash.Data;
 
 [CreateAssetMenu(fileName = "New Monster Data", menuName = "Game Data/Monster Data")]
 public class MonsterData : ScriptableObject
@@ -35,6 +36,10 @@ public class MonsterData : ScriptableObject
     [Header("AI 설정")]
     [Tooltip("공격 우선 타겟 (Front: 전방 우선, Random: 랜덤)")]
     public TargetPriority targetPriority = TargetPriority.Front;
+
+    [Header("스킬")]
+    [Tooltip("이 몬스터가 사용할 스킬 목록 (최대 2개 권장)")]
+    public SkillData[] skills;
 
     public enum TargetPriority
     {

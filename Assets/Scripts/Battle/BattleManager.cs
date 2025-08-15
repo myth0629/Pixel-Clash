@@ -327,16 +327,27 @@ public class BattleManager : MonoBehaviour
     {
         int enemyCount = Mathf.Min(count, 2); // 최대 2명까지만
 
+        // 스테이지/라운드별 몬스터 풀 조회 (없으면 로컬 monsterDataList 사용)
+        MonsterData[] monsterPool = null;
+        if (StageManager.Instance != null)
+        {
+            monsterPool = StageManager.Instance.GetMonsterPoolForCurrentRound();
+        }
+        if ((monsterPool == null || monsterPool.Length == 0) && monsterDataList != null && monsterDataList.Length > 0)
+        {
+            monsterPool = monsterDataList;
+        }
+
         for (int i = 0; i < enemyCount; i++)
         {
             // MonsterData가 있으면 사용, 없으면 기본 enemyPrefab 사용
             GameObject prefabToSpawn = enemyPrefab;
             MonsterData dataToUse = null;
             
-            if (monsterDataList != null && monsterDataList.Length > 0)
+            if (monsterPool != null && monsterPool.Length > 0)
             {
                 // 랜덤하게 몬스터 데이터 선택
-                dataToUse = monsterDataList[UnityEngine.Random.Range(0, monsterDataList.Length)];
+                dataToUse = monsterPool[UnityEngine.Random.Range(0, monsterPool.Length)];
                 if (dataToUse.prefab != null)
                     prefabToSpawn = dataToUse.prefab;
             }

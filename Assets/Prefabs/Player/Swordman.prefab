@@ -72,6 +72,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Swordman
       objectReference: {fileID: 0}
+    - target: {fileID: 4052654271259579007, guid: 45ba03411d7154fa08ad54c10e802de7, type: 3}
+      propertyPath: debugSkillLog
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6544327869441559317, guid: 45ba03411d7154fa08ad54c10e802de7, type: 3}
       propertyPath: m_Controller
       value: 

@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 14f5991547650437cb354c991f78e9dc, type: 3}
   m_Name: Slime
   m_EditorClassIdentifier: 
-  monsterName: "\uBAAC\uC2A4\uD130"
+  monsterName: "\uC2AC\uB77C\uC784"
   description: "\uBAAC\uC2A4\uD130 \uC124\uBA85"
-  icon: {fileID: 0}
-  prefab: {fileID: 0}
-  baseHp: 30
+  icon: {fileID: -7854738478779454800, guid: 63de1913825c749ee89e2a0cf15ab687, type: 3}
+  prefab: {fileID: 2071728351080277946, guid: b87f16c147e3b4c018f8e386466a8cdc, type: 3}
+  baseHp: 40
   baseAtk: 5
   attackInterval: 1.2
   hpPerWave: 10

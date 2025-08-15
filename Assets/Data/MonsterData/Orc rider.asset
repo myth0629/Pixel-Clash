@@ -12,16 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 14f5991547650437cb354c991f78e9dc, type: 3}
   m_Name: Orc rider
   m_EditorClassIdentifier: 
-  monsterName: "\uBAAC\uC2A4\uD130"
+  monsterName: "\uC624\uD06C \uAE30\uBCD1"
   description: "\uBAAC\uC2A4\uD130 \uC124\uBA85"
-  icon: {fileID: 0}
-  prefab: {fileID: 0}
-  baseHp: 30
+  icon: {fileID: -6967218827304948987, guid: f4d6310d38614474ca8039b1c5e5d323, type: 3}
+  prefab: {fileID: 4358380111705015962, guid: 133f27f2f2bb34a6bb55d43590cb33dc, type: 3}
+  baseHp: 50
   baseAtk: 5
   attackInterval: 1.2
   hpPerWave: 10
   atkPerWave: 3
   maxScalingWave: 10
-  expReward: 15
-  goldReward: 10
+  expReward: 30
+  goldReward: 80
   targetPriority: 0

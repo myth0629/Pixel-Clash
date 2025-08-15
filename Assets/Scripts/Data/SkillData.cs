@@ -29,6 +29,11 @@ namespace PixelClash.Data
         [Tooltip("스킬 계수(데미지 or 회복량 배수). 1 = 100% 기본공격과 동일")]
         public float powerMultiplier = 1.5f;
 
+    [Tooltip("고정 추가 대미지 (선택). 음수면 감산도 가능")]
+    public int flatBonusDamage = 0;
+
+    [Tooltip("고정 추가 힐량 (선택)")] public int flatBonusHeal = 0;
+
         [Tooltip("에너지·궁극기 게이지 필요치 등 특수 비용 (필요 없다면 0)")]
         public float cost = 0f;
 
@@ -40,6 +45,10 @@ namespace PixelClash.Data
         /// 향후 업그레이드용: 동일 스킬의 다음 레벨 데이터 참조
         /// </summary>
         public SkillData nextLevel;
+
+    [Header("Animation")]
+    [Tooltip("스킬 시전 시 Animator에 보낼 트리거 이름 (없으면 'Skill')")]
+    public string animatorTrigger = "Skill";
     }
 
     // -------------------- ENUMS --------------------
