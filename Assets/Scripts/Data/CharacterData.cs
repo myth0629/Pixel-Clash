@@ -23,8 +23,11 @@ public class CharacterData : ScriptableObject
     public int unlockCost;           // 골드 해금 비용
 
     [Header("Battle Placement")]
-    [Tooltip("이 캐릭터가 배치될 수 있는 위치 (Front: 전방, Back: 후방)")]
+    [Tooltip("이 캐릭터가 기본적으로 배치될 수 있는 위치")]
     public PositionType position = PositionType.Front;
+    
+    [Tooltip("스킬 해금으로 추가로 배치 가능해지는 위치들")]
+    public List<PositionUnlock> positionUnlocks = new List<PositionUnlock>();
 
     [Header("Skill Unlocks")]
     public List<SkillUnlock> skills; // (레벨, 스킬) 쌍
@@ -41,4 +44,13 @@ public struct SkillUnlock
 {
     public int requiredLevel;
     public SkillData skill;
+}
+
+[Serializable]
+public struct PositionUnlock
+{
+    public int requiredLevel;
+    public PositionType unlockedPosition;
+    [Tooltip("위치 해금과 함께 표시할 메시지")]
+    public string unlockMessage;
 }

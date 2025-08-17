@@ -282,6 +282,10 @@ public class BattleManager : MonoBehaviour
                 var pc = go.AddComponent<PlayerCharacter>();
                 pc.Setup(characterData, level);
                 
+                // 위치 설정 (애니메이션 상태 적용)
+                PositionType position = isFrontRow ? PositionType.Front : PositionType.Back;
+                pc.SetPosition(position);
+                
                 // 체력바 생성
                 var bar = Instantiate(healthBarPrefab, uiRoot);
                 bar.Init(pc);
@@ -312,6 +316,10 @@ public class BattleManager : MonoBehaviour
 
             var pc = go.AddComponent<PlayerCharacter>();
             pc.Setup(cd, level);
+
+            // 위치 설정 (애니메이션 상태 적용)
+            PositionType position = isFrontRow ? PositionType.Front : PositionType.Back;
+            pc.SetPosition(position);
 
             // ▼ HP 바 생성 & 초기화
             var bar = Instantiate(healthBarPrefab, uiRoot);

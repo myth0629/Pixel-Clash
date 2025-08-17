@@ -2278,11 +2278,7 @@ MonoBehaviour:
   playerCharacterSpacing: 1.2
   enemyCharacterSpacing: 1.2
   enemyPrefab: {fileID: 0}
-  monsterDataList:
-  - {fileID: 11400000, guid: 0b9f5be3c03344aa3a5c787a2e3eed53, type: 2}
-  - {fileID: 11400000, guid: 9939cfbe3c6234c87b2d4a17677234a2, type: 2}
-  - {fileID: 11400000, guid: bed7e3e5f6a72445ea8f3bc465d59f91, type: 2}
-  - {fileID: 11400000, guid: 88df0e870306f4fbfabf5ecd711c1570, type: 2}
+  monsterDataList: []
   battleStartDelay: 2
   healthBarPrefab: {fileID: 4526279226287500771, guid: c6887d393265346ca962273b5461d898, type: 3}
   uiRoot: {fileID: 1013079399}
@@ -2351,6 +2347,7 @@ MonoBehaviour:
   stageHpMultiplier: 1.2
   stageAtkMultiplier: 1.15
   roundEnemyIncrease: 1
+  stageMonsterConfig: {fileID: 11400000, guid: 2a09b9b06889249d7b4c391c287cf0e2, type: 2}
 --- !u!114 &318403657
 MonoBehaviour:
   m_ObjectHideFlags: 0

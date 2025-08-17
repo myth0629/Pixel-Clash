@@ -22,4 +22,8 @@ MonoBehaviour:
   atkGrowth: 0.1
   unlockCost: 0
   position: 0
+  positionUnlocks:
+  - requiredLevel: 5
+    unlockedPosition: 1
+    unlockMessage: 
   skills: []

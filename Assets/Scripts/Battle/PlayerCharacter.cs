@@ -13,6 +13,7 @@ public class PlayerCharacter : CharacterBase
     private Enemy enemy;  // 현재 타겟 적
     private Animator animator;
     private bool canAttack = false;  // 공격 가능 여부
+    private PositionType currentPosition = PositionType.Front; // 현재 배치 위치
 
     private void Start()
     {
@@ -58,6 +59,9 @@ public class PlayerCharacter : CharacterBase
         InitStats(hp, atk, interval);
         Debug.Log($"[PlayerCharacter] After InitStats: Attack={Attack}");
 
+        // 위치 감지 및 애니메이션 상태 설정
+        DetectAndSetPosition();
+
         // 스킬 바인딩: 캐릭터 레벨 기준 해금 (Animator가 있는 GameObject에 부착하여 이벤트 일치)
         var targetGo = animator != null ? animator.gameObject : this.gameObject;
         var skillCtrl = targetGo.GetComponent<SkillController>();
@@ -78,6 +82,63 @@ public class PlayerCharacter : CharacterBase
             Debug.Log($"[PlayerCharacter] 스킬 바인딩 완료: {unlocked.Count}개 스킬");
         }
     }
+
+    /// <summary>현재 위치를 감지하고 애니메이션 상태를 설정</summary>
+    private void DetectAndSetPosition()
+    {
+        // X 좌표를 기준으로 전방/후방 판단 (0에 가까우면 전방, 음수면 후방)
+        float xPosition = transform.localPosition.x;
+        PositionType detectedPosition = Mathf.Abs(xPosition) < 0.1f ? PositionType.Front : PositionType.Back;
+        
+        SetPosition(detectedPosition);
+        
+        Debug.Log($"[{gameObject.name}] 위치 감지: X={xPosition:F2}, Position={currentPosition}");
+    }
+
+    /// <summary>캐릭터 위치를 설정하고 해당 애니메이션 상태를 적용</summary>
+    public void SetPosition(PositionType position)
+    {
+        currentPosition = position;
+
+        // Soldier 캐릭터만 위치별 애니메이션 적용 (공격만, idle은 공용)
+        if (data != null && data.displayName == "병사")
+        {
+            // 애니메이터 파라미터 설정 (공격 분기용)
+            if (HasAnimatorParameter("IsInBackRow"))
+            {
+                bool isBackRow = (position == PositionType.Back);
+                animator.SetBool("IsInBackRow", isBackRow);
+                Debug.Log($"[{gameObject.name}] Soldier 위치 애니메이션 설정: IsInBackRow={isBackRow}");
+            }
+        }
+    }
+
+    /// <summary>애니메이터에 특정 파라미터가 있는지 확인</summary>
+    private bool HasAnimatorParameter(string parameterName)
+    {
+        if (animator == null) return false;
+        
+        foreach (AnimatorControllerParameter param in animator.parameters)
+        {
+            if (param.name == parameterName)
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>애니메이터에 특정 상태가 있는지 확인</summary>
+    private bool HasAnimatorState(string stateName)
+    {
+        if (animator == null) return false;
+        
+        for (int i = 0; i < animator.layerCount; i++)
+        {
+            if (animator.HasState(i, Animator.StringToHash(stateName)))
+                return true;
+        }
+        return false;
+    }
+    
     
     protected override void Update()
     {
@@ -107,7 +168,29 @@ public class PlayerCharacter : CharacterBase
         }
         
         Debug.Log($"[{gameObject.name}] 적 {enemy.name} 공격!");
-        animator.SetTrigger("Attack");
+        
+        // Soldier 캐릭터의 위치별 공격 애니메이션
+        if (data != null && data.displayName == "병사")
+        {
+            string attackTrigger = currentPosition == PositionType.Back ? "BackRowAttack" : "FrontRowAttack";
+            
+            if (HasAnimatorParameter(attackTrigger))
+            {
+                animator.SetTrigger(attackTrigger);
+                Debug.Log($"[{gameObject.name}] Soldier 위치별 공격: {attackTrigger}");
+            }
+            else
+            {
+                // 폴백: 기본 Attack 트리거 사용
+                animator.SetTrigger("Attack");
+                Debug.Log($"[{gameObject.name}] Soldier 기본 공격 (위치별 애니메이션 없음)");
+            }
+        }
+        else
+        {
+            // 다른 캐릭터는 기본 Attack 트리거 사용
+            animator.SetTrigger("Attack");
+        }
     }
     
     // 타격 프레임(애니메이션 이벤트)에서 호출

@@ -79,6 +79,16 @@ public class GameUIManager : MonoBehaviour
     [SerializeField] private Button confirmPurchaseButton;  // 확인 버튼
     [SerializeField] private Button cancelPurchaseButton;   // 취소 버튼
 
+    [Header("스킬 해금 팝업")]
+    [SerializeField] private GameObject skillUnlockPanel;  // 스킬 해금 팝업
+    [SerializeField] private TMPro.TextMeshProUGUI skillUnlockTitleText;  // 팝업 제목
+    [SerializeField] private TMPro.TextMeshProUGUI skillUnlockCharacterNameText;  // 캐릭터 이름
+    [SerializeField] private TMPro.TextMeshProUGUI skillUnlockSkillNameText;  // 스킬 이름
+    [SerializeField] private TMPro.TextMeshProUGUI skillUnlockDescriptionText;  // 스킬 설명
+    [SerializeField] private Image skillUnlockCharacterIcon;  // 캐릭터 아이콘
+    [SerializeField] private Image skillUnlockSkillIcon;  // 스킬 아이콘
+    [SerializeField] private Button skillUnlockConfirmButton;  // 확인 버튼
+
     [Header("게임 UI")]
     [SerializeField] private GameObject gameUIPanel;
     [SerializeField] private GameObject[] gameUIElements; // 게임 중 활성화할 UI들
@@ -245,6 +255,13 @@ public class GameUIManager : MonoBehaviour
             healButton.onClick.AddListener(OnHealButtonClicked);
         }
 
+        // 스킬 해금 팝업 버튼 설정
+        if (skillUnlockConfirmButton != null)
+        {
+            skillUnlockConfirmButton.onClick.RemoveAllListeners();
+            skillUnlockConfirmButton.onClick.AddListener(OnSkillUnlockConfirm);
+        }
+
         if (battleStartButton != null)
             battleStartButton.onClick.AddListener(OnBattleStartClicked);
         
@@ -375,6 +392,10 @@ public class GameUIManager : MonoBehaviour
         if (upgradePanel != null)
             upgradePanel.SetActive(false);
 
+        // 스킬 해금 팝업 비활성화 (혹시 열려있다면)
+        if (skillUnlockPanel != null)
+            skillUnlockPanel.SetActive(false);
+
         // 일시정지 패널 비활성화
         if (pausePanel != null)
             pausePanel.SetActive(false);
@@ -417,6 +438,10 @@ public class GameUIManager : MonoBehaviour
         // 업그레이드 패널 비활성화 (혹시 열려있다면)
         if (upgradePanel != null)
             upgradePanel.SetActive(false);
+
+        // 스킬 해금 팝업 비활성화 (혹시 열려있다면)
+        if (skillUnlockPanel != null)
+            skillUnlockPanel.SetActive(false);
 
         // 일시정지 패널 비활성화
         if (pausePanel != null)
@@ -577,6 +602,10 @@ public class GameUIManager : MonoBehaviour
         // 업그레이드 패널 비활성화 (혹시 열려있다면)
         if (upgradePanel != null)
             upgradePanel.SetActive(false);
+
+        // 스킬 해금 팝업 비활성화 (혹시 열려있다면)
+        if (skillUnlockPanel != null)
+            skillUnlockPanel.SetActive(false);
 
         // 게임 진입 시 일시정지 해제 및 패널 숨김
         Time.timeScale = 1f;
@@ -871,20 +900,45 @@ public class GameUIManager : MonoBehaviour
         }
     }
 
+    /// <summary>캐릭터가 특정 위치에 배치 가능한지 확인 (스킬 해금 고려)</summary>
+    private bool IsCharacterAllowedInPosition(CharacterData character, PositionType positionType)
+    {
+        if (character == null) return false;
+        
+        // 기본 위치 확인
+        if (character.position == positionType) return true;
+        
+        // 스킬 해금으로 추가된 위치 확인
+        if (character.positionUnlocks != null)
+        {
+            int characterLevel = GetCharacterLevel(character);
+            foreach (var positionUnlock in character.positionUnlocks)
+            {
+                if (positionUnlock.unlockedPosition == positionType && 
+                    characterLevel >= positionUnlock.requiredLevel)
+                {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+
     /// <summary>슬롯 인덱스에 맞는 캐릭터인지 검사 (0: 전방, 1: 후방)</summary>
     private bool IsCharacterAllowedInSlot(CharacterData character, int slotIndex)
     {
         if (character == null) return true; // 빈 슬롯 허용
         if (slotIndex < 0) return true;     // 방어적 처리: 슬롯 미지정 시 통과
 
-        // 0번 슬롯 = 전방 전용, 1번 슬롯 = 후방 전용
+        // 0번 슬롯 = 전방, 1번 슬롯 = 후방
         if (slotIndex == 0)
         {
-            return character.position == PositionType.Front;
+            return IsCharacterAllowedInPosition(character, PositionType.Front);
         }
         if (slotIndex == 1)
         {
-            return character.position == PositionType.Back;
+            return IsCharacterAllowedInPosition(character, PositionType.Back);
         }
 
         // 그 외 슬롯이 생길 경우 확장성을 위해 모두 허용
@@ -1499,12 +1553,41 @@ public class GameUIManager : MonoBehaviour
         int currentLevel = GetCharacterLevel(pendingUpgradeCharacter);
         int upgradeCost = GetUpgradeCost(pendingUpgradeCharacter, currentLevel);
 
-    if (GameDataManager.Instance != null && GameDataManager.Instance.SpendGold(upgradeCost))
+        if (GameDataManager.Instance != null && GameDataManager.Instance.SpendGold(upgradeCost))
         {
             // 레벨업 실행
-            SetCharacterLevel(pendingUpgradeCharacter, currentLevel + 1);
+            int newLevel = currentLevel + 1;
+            SetCharacterLevel(pendingUpgradeCharacter, newLevel);
             
-            Debug.Log($"{pendingUpgradeCharacter.displayName} 레벨업: {currentLevel} → {currentLevel + 1}, 비용: {upgradeCost} 골드");
+            Debug.Log($"{pendingUpgradeCharacter.displayName} 레벨업: {currentLevel} → {newLevel}, 비용: {upgradeCost} 골드");
+            
+            // 스킬 해금 확인
+            bool skillUnlocked = false;
+            if (pendingUpgradeCharacter.skills != null && pendingUpgradeCharacter.skills.Count > 0)
+            {
+                foreach (var skillUnlock in pendingUpgradeCharacter.skills)
+                {
+                    if (skillUnlock.requiredLevel == newLevel)
+                    {
+                        ShowSkillUnlockPopup(pendingUpgradeCharacter, skillUnlock.skill);
+                        skillUnlocked = true;
+                        break; // 첫 번째 해금 스킬만 표시
+                    }
+                }
+            }
+            
+            // 위치 해금 확인 (스킬 해금이 없었을 때만)
+            if (!skillUnlocked && pendingUpgradeCharacter.positionUnlocks != null)
+            {
+                foreach (var positionUnlock in pendingUpgradeCharacter.positionUnlocks)
+                {
+                    if (positionUnlock.requiredLevel == newLevel)
+                    {
+                        ShowPositionUnlockPopup(pendingUpgradeCharacter, positionUnlock);
+                        break; // 첫 번째 해금 위치만 표시
+                    }
+                }
+            }
             
             // UI 새로고침
             RefreshUpgradeItems();
@@ -2066,6 +2149,97 @@ public class GameUIManager : MonoBehaviour
         RefreshShopItems();
         
         Debug.Log($"테스트: 모든 캐릭터 구매 취소 완료! 총 {totalRefund} 골드 환불됨");
+    }
+
+    #endregion
+
+    #region 스킬 해금 시스템
+
+    /// <summary>스킬 해금 팝업 표시</summary>
+    public void ShowSkillUnlockPopup(CharacterData character, PixelClash.Data.SkillData skillData)
+    {
+        if (skillUnlockPanel == null) return;
+
+        Debug.Log($"스킬 해금 팝업 표시: {character?.displayName} - {skillData?.displayName}");
+
+        // 다른 팝업들 닫기
+        if (purchaseConfirmPanel != null)
+            purchaseConfirmPanel.SetActive(false);
+
+        // 텍스트 정보 설정
+        if (skillUnlockTitleText != null)
+            skillUnlockTitleText.text = "새로운 스킬 해금!";
+
+        if (skillUnlockCharacterNameText != null && character != null)
+            skillUnlockCharacterNameText.text = character.displayName;
+
+        if (skillUnlockSkillNameText != null && skillData != null)
+            skillUnlockSkillNameText.text = skillData.displayName;
+
+        if (skillUnlockDescriptionText != null && skillData != null)
+            skillUnlockDescriptionText.text = $"레벨 5 달성으로 새로운 스킬이 해금되었습니다!\n{skillData.displayName}을(를) 사용할 수 있습니다.";
+
+        // 아이콘 설정
+        if (skillUnlockCharacterIcon != null && character?.icon != null)
+            skillUnlockCharacterIcon.sprite = character.icon;
+
+        if (skillUnlockSkillIcon != null && skillData?.icon != null)
+            skillUnlockSkillIcon.sprite = skillData.icon;
+
+        // 팝업 활성화
+        skillUnlockPanel.SetActive(true);
+    }
+
+    /// <summary>스킬 해금 팝업 확인 버튼 클릭</summary>
+    private void OnSkillUnlockConfirm()
+    {
+        // 스킬 해금 팝업 닫기
+        if (skillUnlockPanel != null)
+            skillUnlockPanel.SetActive(false);
+    }
+
+    /// <summary>위치 해금 팝업 표시</summary>
+    private void ShowPositionUnlockPopup(CharacterData character, PositionUnlock positionUnlock)
+    {
+        if (skillUnlockPanel == null) return;
+
+        Debug.Log($"위치 해금 팝업 표시: {character?.displayName} - {positionUnlock.unlockedPosition}");
+
+        // 다른 팝업들 닫기
+        if (purchaseConfirmPanel != null)
+            purchaseConfirmPanel.SetActive(false);
+
+        // 위치 이름 변환
+        string positionName = positionUnlock.unlockedPosition == PositionType.Front ? "전방" : "후방";
+
+        // 텍스트 정보 설정 (스킬 해금 팝업을 재사용)
+        if (skillUnlockTitleText != null)
+            skillUnlockTitleText.text = "새로운 위치 해금!";
+
+        if (skillUnlockCharacterNameText != null && character != null)
+            skillUnlockCharacterNameText.text = character.displayName;
+
+        if (skillUnlockSkillNameText != null)
+            skillUnlockSkillNameText.text = $"{positionName} 배치";
+
+        if (skillUnlockDescriptionText != null)
+        {
+            string message = string.IsNullOrEmpty(positionUnlock.unlockMessage) 
+                ? $"레벨 {positionUnlock.requiredLevel} 달성으로 {positionName} 배치가 해금되었습니다!\n이제 {positionName} 위치에도 배치할 수 있습니다."
+                : positionUnlock.unlockMessage;
+            skillUnlockDescriptionText.text = message;
+        }
+
+        // 아이콘 설정
+        if (skillUnlockCharacterIcon != null && character?.icon != null)
+            skillUnlockCharacterIcon.sprite = character.icon;
+
+        // 스킬 아이콘은 위치 해금에서는 숨기거나 기본 아이콘 사용
+        if (skillUnlockSkillIcon != null)
+            skillUnlockSkillIcon.sprite = null;
+
+        // 팝업 활성화
+        skillUnlockPanel.SetActive(true);
     }
 
     #endregion
