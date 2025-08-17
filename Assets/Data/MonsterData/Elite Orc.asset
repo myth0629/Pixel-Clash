@@ -16,7 +16,7 @@ MonoBehaviour:
   description: "\uBAAC\uC2A4\uD130 \uC124\uBA85"
   icon: {fileID: 2512407743645487233, guid: 44796d085af634668b9044c86e61c547, type: 3}
   prefab: {fileID: 6003169725849997488, guid: d2653ffde224e427b89c8a5fc1aecc85, type: 3}
-  baseHp: 60
+  baseHp: 100
   baseAtk: 7
   attackInterval: 1.2
   hpPerWave: 10

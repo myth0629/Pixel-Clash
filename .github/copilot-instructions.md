@@ -466,6 +466,7 @@ public class StageMonsterConfig : ScriptableObject {
 ### ✅ 전투 확장
 - 스킬 시스템: 자동 시전, 애니메이션 이벤트 임팩트, 멀티 히트, atk 기반 계산(ceil + flat)
 - 스테이지 몬스터 구성: Stage/Round 풀 + 폴백 계층(Global → Stage → Round)
+- 위치별 애니메이션 시스템: Soldier 캐릭터 전방/후방 차별화된 공격 애니메이션
 
 ## 🚀 아키텍처 완성도
 
@@ -477,3 +478,51 @@ public class StageMonsterConfig : ScriptableObject {
 4. **게임플레이**: 완전한 라운드 진행 + 경제 시스템
 
 이 가이드는 새로운 개발자나 AI 에이전트가 Pixel-Clash 프로젝트를 즉시 이해하고 작업할 수 있도록 모든 핵심 정보를 담고 있습니다.
+
+## 🎭 위치별 애니메이션 시스템 (Soldier 특화)
+
+### 시스템 개요
+Soldier 캐릭터가 전방(근접)과 후방(원거리) 배치에서 서로 다른 공격 애니메이션을 실행하는 시스템
+
+### 핵심 구성 요소
+```csharp
+// PlayerCharacter.cs
+private PositionType currentPosition = PositionType.Front;
+
+public void SetPosition(PositionType position)
+{
+    currentPosition = position;
+    if (data?.displayName == "Soldier" && animator != null)
+    {
+        animator.SetBool("IsInBackRow", position == PositionType.Back);
+    }
+}
+
+// 위치별 공격 분기
+string attackTrigger = currentPosition == PositionType.Back ? "BackRowAttack" : "FrontRowAttack";
+```
+
+### 애니메이터 구조
+- **Parameters**: `IsInBackRow` (Bool), `FrontRowAttack` (Trigger), `BackRowAttack` (Trigger)
+- **States**: `idle` (공용), `FrontRowAttack`, `BackRowAttack`
+- **Transitions**: 위치 조건과 트리거 조합으로 분기
+
+### 위치 해금 시스템
+```csharp
+// CharacterData.cs
+[Serializable]
+public struct PositionUnlock
+{
+    public int requiredLevel;
+    public PositionType unlockedPosition;
+    public string unlockMessage;
+}
+```
+
+### 개발 도구
+- **CharacterDataEditor**: Soldier 후방 배치 해금 자동 설정
+- **SoldierAnimationSetup**: 애니메이터 파라미터 자동 추가
+- **동적 위치 검증**: GameUIManager에서 레벨 기반 배치 가능 여부 확인
+
+### 확장성
+모듈화된 설계로 다른 캐릭터에도 쉽게 적용 가능. `data.displayName` 체크를 통한 캐릭터별 특화 처리.

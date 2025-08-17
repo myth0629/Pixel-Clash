@@ -16,7 +16,7 @@ MonoBehaviour:
   description: 
   icon: {fileID: 303854554312539980, guid: ac15cb10fb6364d2a8fa9f2cdc4aa05a, type: 3}
   prefab: {fileID: 6964586936139052270, guid: 06d0512b740f4472089a412987baad3a, type: 3}
-  baseHp: 30
+  baseHp: 60
   baseAtk: 5
   attackInterval: 1.2
   hpPerWave: 10
@@ -25,3 +25,4 @@ MonoBehaviour:
   expReward: 15
   goldReward: 10
   targetPriority: 0
+  skills: []

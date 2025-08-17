@@ -26,4 +26,6 @@ MonoBehaviour:
   - requiredLevel: 5
     unlockedPosition: 1
     unlockMessage: 
-  skills: []
+  skills:
+  - requiredLevel: 5
+    skill: {fileID: 11400000, guid: 24c5aba7b483644f680979e23ddd8a14, type: 2}
