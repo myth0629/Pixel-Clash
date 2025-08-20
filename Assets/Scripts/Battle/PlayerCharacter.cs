@@ -14,6 +14,7 @@ public class PlayerCharacter : CharacterBase
     private Animator animator;
     private bool canAttack = false;  // 공격 가능 여부
     private PositionType currentPosition = PositionType.Front; // 현재 배치 위치
+    private int attackStep = 1; // 현재 공격 단계 (1: Attack1, 2: Attack2)
 
     private void Start()
     {
@@ -169,29 +170,66 @@ public class PlayerCharacter : CharacterBase
         
         Debug.Log($"[{gameObject.name}] 적 {enemy.name} 공격!");
         
-        // Soldier 캐릭터의 위치별 공격 애니메이션
-        if (data != null && data.displayName == "병사")
+        // 공격 애니메이션 선택 및 실행
+        ExecuteAttackAnimation();
+        
+        // 공격 단계 전환 (1 ↔ 2)
+        attackStep = attackStep == 1 ? 2 : 1;
+        Debug.Log($"[{gameObject.name}] 다음 공격 단계: Attack{attackStep}");
+    }
+
+    /// <summary>공격 애니메이션 실행 (attackStep과 위치 고려)</summary>
+    private void ExecuteAttackAnimation()
+    {
+        if (animator == null)
         {
-            string attackTrigger = currentPosition == PositionType.Back ? "BackRowAttack" : "FrontRowAttack";
-            
-            if (HasAnimatorParameter(attackTrigger))
-            {
-                animator.SetTrigger(attackTrigger);
-                Debug.Log($"[{gameObject.name}] Soldier 위치별 공격: {attackTrigger}");
-            }
-            else
-            {
-                // 폴백: 기본 Attack 트리거 사용
-                animator.SetTrigger("Attack");
-                Debug.Log($"[{gameObject.name}] Soldier 기본 공격 (위치별 애니메이션 없음)");
-            }
+            Debug.LogError($"[{gameObject.name}] Animator가 null입니다!");
+            return;
+        }
+
+        string attackTrigger = GetAttackTrigger();
+        
+        if (HasAnimatorParameter(attackTrigger))
+        {
+            animator.SetTrigger(attackTrigger);
+            Debug.Log($"[{gameObject.name}] 공격 애니메이션 실행: {attackTrigger}");
         }
         else
         {
-            // 다른 캐릭터는 기본 Attack 트리거 사용
-            animator.SetTrigger("Attack");
+            // 폴백: 기본 Attack 트리거 사용
+            string fallbackTrigger = "Attack";
+            if (HasAnimatorParameter(fallbackTrigger))
+            {
+                animator.SetTrigger(fallbackTrigger);
+                Debug.Log($"[{gameObject.name}] 폴백 공격 애니메이션: {fallbackTrigger}");
+            }
+            else
+            {
+                Debug.LogError($"[{gameObject.name}] 사용 가능한 공격 트리거가 없습니다!");
+            }
         }
     }
+
+    /// <summary>현재 상황에 맞는 공격 트리거 이름 반환</summary>
+    private string GetAttackTrigger()
+    {
+        // Soldier 캐릭터의 위치별 공격 (기존 시스템 유지)
+        if (data != null && data.displayName == "병사")
+        {
+            if (currentPosition == PositionType.Back)
+            {
+                return $"BackRowAttack"; // BackRowAttack1, BackRowAttack2
+            }
+            else
+            {
+                return $"FrontRowAttack{attackStep}"; // FrontRowAttack1, FrontRowAttack2
+            }
+        }
+        
+        // 다른 캐릭터들의 기본 공격 단계 시스템
+        return $"Attack{attackStep}"; // Attack1, Attack2
+    }
+    
     
     // 타격 프레임(애니메이션 이벤트)에서 호출
     public void DealDamage()
@@ -253,21 +291,24 @@ public class PlayerCharacter : CharacterBase
     public void StartCombat()
     {
         canAttack = true;
+        attackStep = 1; // 공격 단계 초기화
+        
         // 모든 하위 SkillController 활성화 (Animator에 부착된 컴포넌트 포함)
         var scList = GetComponentsInChildren<SkillController>(true);
         foreach (var sc in scList) sc.StartCombat();
-        Debug.Log($"[{gameObject.name}] 전투 시작! Attack={Attack}, SkillControllers={scList.Length}개");
+        Debug.Log($"[{gameObject.name}] 전투 시작! Attack={Attack}, AttackStep={attackStep}, SkillControllers={scList.Length}개");
     }
     
     /// <summary>새로운 라운드 시작 시 호출 - 전투 준비</summary>
     public void StartNewRound()
     {
         canAttack = false;
+        attackStep = 1; // 공격 단계 초기화
         
         // 체력 완전 회복
         FullHeal();
         
-        Debug.Log($"[{gameObject.name}] 새로운 라운드 준비 - 체력 회복 완료, BattleManager 딜레이 대기 중");
+        Debug.Log($"[{gameObject.name}] 새로운 라운드 준비 - 체력 회복 완료, AttackStep 초기화, BattleManager 딜레이 대기 중");
     }
     
     /// <summary>전투 중지 (라운드 완료 시 호출)</summary>

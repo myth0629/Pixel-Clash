@@ -526,3 +526,33 @@ public struct PositionUnlock
 
 ### 확장성
 모듈화된 설계로 다른 캐릭터에도 쉽게 적용 가능. `data.displayName` 체크를 통한 캐릭터별 특화 처리.
+
+## 🥊 공격 단계 애니메이션 시스템 (Attack Step System)
+
+### 시스템 개요
+모든 플레이어 캐릭터에 `attackStep` 변수를 추가하여 Attack1과 Attack2 애니메이션을 번갈아가며 실행
+
+### 핵심 구성 요소
+```csharp
+// PlayerCharacter.cs
+private int attackStep = 1; // 1: Attack1, 2: Attack2
+
+// 공격 실행 및 단계 전환
+ExecuteAttackAnimation();
+attackStep = attackStep == 1 ? 2 : 1;
+```
+
+### 애니메이터 트리거 구조
+- **일반 캐릭터**: `Attack1`, `Attack2`
+- **Soldier (전방)**: `FrontRowAttack1`, `FrontRowAttack2`  
+- **Soldier (후방)**: `BackRowAttack1`, `BackRowAttack2`
+
+### 초기화 및 리셋
+- **전투 시작**: `StartCombat()` → `attackStep = 1`
+- **라운드 시작**: `StartNewRound()` → `attackStep = 1`
+- **공격 후**: `attackStep` 자동 전환 (1 ↔ 2)
+
+### 폴백 시스템
+1. 우선: 단계별 트리거 (`Attack1`, `Attack2`)
+2. 폴백: 기본 `Attack` 트리거
+3. 에러 로깅: 모든 트리거 없음 시

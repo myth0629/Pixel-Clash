@@ -22,4 +22,7 @@ MonoBehaviour:
   atkGrowth: 0.15
   unlockCost: 1000
   position: 1
-  skills: []
+  positionUnlocks: []
+  skills:
+  - requiredLevel: 5
+    skill: {fileID: 11400000, guid: ed7f1672058a041ae937ab926ea6db29, type: 2}
