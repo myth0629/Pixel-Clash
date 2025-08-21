@@ -14,6 +14,9 @@ public class HealthBarUI : MonoBehaviour
     private CharacterBase target;
     private Camera cam;
 
+    /// <summary>체력바가 연결된 타겟 캐릭터 반환</summary>
+    public CharacterBase GetTarget() => target;
+
     public void Init(CharacterBase owner)
     {
         target = owner;
@@ -23,8 +26,11 @@ public class HealthBarUI : MonoBehaviour
         UpdateFill(owner.CurrentHp, owner.MaxHp);
         owner.OnHealthChanged += UpdateFill;        // Subscribe
 
-        // 파괴 이벤트 구독
-        owner.OnDeath += _ => Destroy(gameObject);
+        // 플레이어는 사망해도 체력바 유지, 적만 체력바 파괴
+        if (owner is Enemy)
+        {
+            owner.OnDeath += _ => Destroy(gameObject);
+        }
     }
 
     private void LateUpdate()

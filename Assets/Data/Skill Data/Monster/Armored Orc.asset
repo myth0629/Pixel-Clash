@@ -19,7 +19,7 @@ MonoBehaviour:
   type: 1
   target: 3
   cooldown: 5
-  powerMultiplier: 1.5
+  powerMultiplier: 1.2
   flatBonusDamage: 0
   flatBonusHeal: 0
   cost: 0

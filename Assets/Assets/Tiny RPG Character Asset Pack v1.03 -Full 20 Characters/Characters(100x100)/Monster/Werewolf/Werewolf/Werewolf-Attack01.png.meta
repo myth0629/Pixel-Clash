@@ -127,12 +127,12 @@ TextureImporter:
       name: Werewolf-Attack01_0
       rect:
         serializedVersion: 2
-        x: 41
-        y: 42
-        width: 29
-        height: 18
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 39
+        y: 43
+        width: 30
+        height: 17
+      alignment: 9
+      pivot: {x: 0.5, y: 0.47058824}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -150,11 +150,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 142
-        y: 42
+        y: 43
         width: 28
-        height: 19
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        height: 18
+      alignment: 9
+      pivot: {x: 0.5, y: 0.44444445}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -171,12 +171,12 @@ TextureImporter:
       name: Werewolf-Attack01_2
       rect:
         serializedVersion: 2
-        x: 242
-        y: 42
+        x: 240
+        y: 43
         width: 28
-        height: 19
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        height: 17
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -194,11 +194,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 342
-        y: 42
+        y: 43
         width: 16
-        height: 27
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        height: 26
+      alignment: 9
+      pivot: {x: 0.8125, y: 0.34615386}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -216,11 +216,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 442
-        y: 42
+        y: 43
         width: 17
-        height: 26
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        height: 25
+      alignment: 9
+      pivot: {x: 0.8235294, y: 0.36}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -241,8 +241,8 @@ TextureImporter:
         y: 41
         width: 36
         height: 27
-      alignment: 0
-      pivot: {x: 0, y: 0}
+      alignment: 9
+      pivot: {x: 0.47222224, y: 0.4074074}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -263,8 +263,8 @@ TextureImporter:
         y: 41
         width: 36
         height: 25
-      alignment: 0
-      pivot: {x: 0, y: 0}
+      alignment: 9
+      pivot: {x: 0.5, y: 0.44}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -285,8 +285,8 @@ TextureImporter:
         y: 41
         width: 31
         height: 17
-      alignment: 0
-      pivot: {x: 0, y: 0}
+      alignment: 9
+      pivot: {x: 0.54838705, y: 0.64705884}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -307,8 +307,8 @@ TextureImporter:
         y: 42
         width: 28
         height: 17
-      alignment: 0
-      pivot: {x: 0, y: 0}
+      alignment: 9
+      pivot: {x: 0.5357143, y: 0.5882353}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -325,7 +325,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: c7aaf433f511548fa8d6d690cfb64b7b
     internalID: 0
     vertices: []
     indices: 

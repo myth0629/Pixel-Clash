@@ -201,9 +201,10 @@ public abstract class CharacterBase : MonoBehaviour
     /// <summary>체력 완전 회복</summary>
     public virtual void FullHeal()
     {
+        int oldHp = currentHp;
         currentHp = maxHp;
         OnHealthChanged?.Invoke(currentHp, maxHp);
-        Debug.Log($"[{gameObject.name}] 체력 완전 회복: {currentHp}/{maxHp}");
+        Debug.Log($"[{gameObject.name}] 체력 완전 회복: {oldHp}/{maxHp} → {currentHp}/{maxHp} (사망 상태에서 부활: {oldHp <= 0})");
     }
     
     /// <summary>사망 여부 확인</summary>

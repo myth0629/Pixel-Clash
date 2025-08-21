@@ -232,11 +232,15 @@ public class BattleManager : MonoBehaviour
     /// <summary>기존 플레이어들을 새로운 라운드에 맞게 준비</summary>
     private void PrepareExistingPlayersForNewRound()
     {
+        Debug.Log($"[PrepareExistingPlayersForNewRound] 기존 플레이어 {_players.Count}명 새 라운드 준비");
+        
         foreach (var player in _players)
         {
             if (player != null)
             {
+                Debug.Log($"[PrepareExistingPlayersForNewRound] {player.data?.displayName} StartNewRound 호출 전 - HP: {player.CurrentHp}/{player.MaxHp}");
                 player.StartNewRound();
+                Debug.Log($"[PrepareExistingPlayersForNewRound] {player.data?.displayName} StartNewRound 호출 후 - HP: {player.CurrentHp}/{player.MaxHp}");
             }
         }
     }
@@ -354,10 +358,14 @@ public class BattleManager : MonoBehaviour
     {
         for (int i = _healthBars.Count - 1; i >= 0; i--)
         {
-            if (_healthBars[i] != null && _healthBars[i].gameObject.name.Contains("Enemy"))
+            if (_healthBars[i] != null)
             {
-                Destroy(_healthBars[i].gameObject);
-                _healthBars.RemoveAt(i);
+                var target = _healthBars[i].GetTarget();
+                if (target is Enemy)
+                {
+                    Destroy(_healthBars[i].gameObject);
+                    _healthBars.RemoveAt(i);
+                }
             }
         }
     }
@@ -365,13 +373,21 @@ public class BattleManager : MonoBehaviour
     /// <summary>죽은 캐릭터들을 부활시킴</summary>
     private void ReviveDeadCharacters(List<(CharacterData, int)> partyInfo)
     {
+        Debug.Log($"[ReviveDeadCharacters] 파티 정보 확인: {partyInfo.Count}명");
+        
         for (int slotIndex = 0; slotIndex < partyInfo.Count; slotIndex++)
         {
             var (characterData, level) = partyInfo[slotIndex];
+            Debug.Log($"[ReviveDeadCharacters] 슬롯 {slotIndex}: {characterData?.displayName} (레벨 {level})");
             
             if (ShouldReviveCharacter(characterData, slotIndex))
             {
+                Debug.Log($"[ReviveDeadCharacters] {characterData.displayName} 부활 필요");
                 ReviveExistingCharacter(characterData, level, slotIndex);
+            }
+            else
+            {
+                Debug.Log($"[ReviveDeadCharacters] {characterData?.displayName} 부활 불필요 (이미 살아있거나 없음)");
             }
         }
     }
@@ -379,13 +395,28 @@ public class BattleManager : MonoBehaviour
     /// <summary>캐릭터 부활 필요 여부 확인 (새로운 로직)</summary>
     private bool ShouldReviveCharacter(CharacterData characterData, int slotIndex)
     {
-        if (characterData == null) return false;
+        if (characterData == null) 
+        {
+            Debug.Log($"[ShouldReviveCharacter] 슬롯 {slotIndex}: characterData가 null");
+            return false;
+        }
+        
+        // 현재 플레이어 리스트 상태 확인
+        Debug.Log($"[ShouldReviveCharacter] 현재 플레이어 수: {_players.Count}");
+        for (int i = 0; i < _players.Count; i++)
+        {
+            if (_players[i] != null)
+            {
+                Debug.Log($"  플레이어 {i}: {_players[i].data?.displayName} (HP: {_players[i].CurrentHp}/{_players[i].MaxHp})");
+            }
+        }
         
         // 해당 슬롯에 이미 살아있는 캐릭터가 있는지 확인
         foreach (var player in _players)
         {
             if (player != null && player.data == characterData && player.CurrentHp > 0)
             {
+                Debug.Log($"[ShouldReviveCharacter] {characterData.displayName} 이미 살아있음");
                 return false; // 이미 살아있음
             }
         }
@@ -395,11 +426,13 @@ public class BattleManager : MonoBehaviour
         {
             if (player != null && player.data == characterData && player.CurrentHp <= 0)
             {
+                Debug.Log($"[ShouldReviveCharacter] {characterData.displayName} 사망 상태 - 부활 필요");
                 return true; // 사망한 캐릭터 발견 - 부활 필요
             }
         }
         
         // 아예 없는 캐릭터면 새로 생성
+        Debug.Log($"[ShouldReviveCharacter] {characterData.displayName} 플레이어 리스트에 없음 - 새로 생성 필요");
         return true;
     }
 
@@ -422,6 +455,13 @@ public class BattleManager : MonoBehaviour
             // 기존 캐릭터 부활
             Debug.Log($"기존 캐릭터 부활: {characterData.displayName} (레벨 {level})");
             deadCharacter.StartNewRound(); // 이미 체력 회복과 애니메이션 리셋 포함
+            
+            // 체력바가 없다면 다시 생성
+            if (!HasHealthBarForCharacter(deadCharacter))
+            {
+                Debug.Log($"[ReviveExistingCharacter] {characterData.displayName} 체력바 없음 - 재생성");
+                CreatePlayerHealthBar(deadCharacter);
+            }
         }
         else
         {
@@ -500,6 +540,29 @@ public class BattleManager : MonoBehaviour
         var healthBar = Instantiate(healthBarPrefab, uiRoot);
         healthBar.Init(playerCharacter);
         _healthBars.Add(healthBar);
+    }
+
+    /// <summary>특정 캐릭터의 체력바가 존재하는지 확인</summary>
+    private bool HasHealthBarForCharacter(PlayerCharacter character)
+    {
+        // null 체력바 정리
+        for (int i = _healthBars.Count - 1; i >= 0; i--)
+        {
+            if (_healthBars[i] == null)
+            {
+                _healthBars.RemoveAt(i);
+            }
+        }
+        
+        // 해당 캐릭터의 체력바 존재 여부 확인
+        foreach (var healthBar in _healthBars)
+        {
+            if (healthBar != null && healthBar.GetTarget() == character)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     /// <summary>플레이어 등록</summary>

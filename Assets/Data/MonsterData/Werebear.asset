@@ -25,4 +25,5 @@ MonoBehaviour:
   expReward: 20
   goldReward: 60
   targetPriority: 0
-  skills: []
+  skills:
+  - {fileID: 11400000, guid: c13d974c700b74278823e47a8b2ff2a7, type: 2}

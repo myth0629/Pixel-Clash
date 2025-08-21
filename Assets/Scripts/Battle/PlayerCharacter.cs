@@ -193,11 +193,16 @@ public class PlayerCharacter : CharacterBase
         // 체력 완전 회복 (사망 상태에서도 부활)
         FullHeal();
         
-        // Death 애니메이션 상태 리셋 (Idle로 돌아가기)
-        if (animator != null && HasAnimatorParameter("Idle"))
+        // Death 애니메이션 상태 리셋 - 강제로 Idle 상태로 전환
+        if (animator != null)
         {
-            animator.SetTrigger("Idle");
-            Debug.Log($"[{gameObject.name}] Death 상태에서 Idle로 복귀");
+            // 또는 직접 Idle 상태로 전환
+            if (HasAnimatorState("idle") || HasAnimatorState("Idle"))
+            {
+                string idleStateName = HasAnimatorState("idle") ? "idle" : "Idle";
+                animator.Play(idleStateName, 0, 0f);
+                Debug.Log($"[{gameObject.name}] {idleStateName} 상태로 강제 전환");
+            }
         }
         
         Debug.Log($"[{gameObject.name}] 새로운 라운드 준비 - 체력 회복 완료, AttackStep 초기화, 애니메이션 리셋");
