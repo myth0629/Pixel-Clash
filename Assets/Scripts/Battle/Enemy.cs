@@ -7,7 +7,6 @@ using UnityEngine.UIElements;
 public class Enemy : CharacterBase
 {
     private PlayerCharacter target;
-    private Animator animator;
     private MonsterData monsterData;
     private int currentWave;
     
@@ -28,28 +27,11 @@ public class Enemy : CharacterBase
         base.Update();
     }
 
-    private void Start()
+    protected override void Start()
     {
-        animator = GetComponentInChildren<Animator>();
-        if (animator == null)
-        {
-            animator = GetComponent<Animator>();
-        }
+        base.Start(); // CharacterBase의 InitializeAnimator 호출
         
-        if (animator == null)
-        {
-            Debug.LogWarning($"[{gameObject.name}] Enemy Animator를 찾을 수 없습니다!");
-        }
-        else
-        {
-            Debug.Log($"[{gameObject.name}] Enemy Animator 찾음: {animator.gameObject.name}");
-            
-            // 애니메이터 파라미터 목록 출력
-            foreach (AnimatorControllerParameter param in animator.parameters)
-            {
-                Debug.Log($"[{gameObject.name}] 애니메이터 파라미터: {param.name} ({param.type})");
-            }
-        }
+        // Enemy 특화 초기화가 필요하면 여기서 추가
     }
 
     // MonsterData를 사용한 셋업
@@ -87,10 +69,11 @@ public class Enemy : CharacterBase
         }
 
         Debug.Log($"[{gameObject.name}] 플레이어 {target.name} 공격!");
-        // 애니메이션 트리거만 실행 (실제 데미지는 DealDamage에서)
-        animator.SetTrigger("Attack");
+        
+        // 베이스 클래스의 공격 애니메이션 실행
+        ExecuteAttackAnimation();
     }
-    
+
     // 타격 프레임(애니메이션 이벤트)에서 호출
     public void DealDamage()
     {
@@ -149,7 +132,7 @@ public class Enemy : CharacterBase
     }
     
     /// <summary>걷기 애니메이션 제어</summary>
-    public void SetWalkingAnimation(bool isWalking)
+    public override void SetWalkingAnimation(bool isWalking)
     {
         if (animator != null)
         {
@@ -252,8 +235,34 @@ public class Enemy : CharacterBase
     public void StartCombat()
     {
         canAttack = true;
-    var sc = GetComponent<SkillController>();
-    if (sc != null) sc.StartCombat();
-        Debug.Log($"[{gameObject.name}] 전투 시작!");
+        ResetAttackStep(); // 베이스 클래스 메서드 사용
+        
+        var sc = GetComponent<SkillController>();
+        if (sc != null) sc.StartCombat();
+        Debug.Log($"[{gameObject.name}] 전투 시작! AttackStep={attackStep}");
+    }
+    
+    /// <summary>적 사망 처리 - Death 애니메이션 후 2초 뒤 Destroy</summary>
+    protected override void HandleDeath()
+    {
+        // 공격 중지
+        canAttack = false;
+        
+        // 스킬 컨트롤러 중지
+        var sc = GetComponent<SkillController>();
+        if (sc != null) sc.StopCombat();
+        
+        // 2초 후 Destroy
+        StartCoroutine(DestroyAfterDelay());
+        
+        Debug.Log($"[{gameObject.name}] 적 사망 - 2초 후 파괴 예정");
+    }
+    
+    /// <summary>딜레이 후 파괴</summary>
+    private IEnumerator DestroyAfterDelay()
+    {
+        yield return new WaitForSeconds(2f);
+        Destroy(gameObject);
+        Debug.Log($"[{gameObject.name}] 적 오브젝트 파괴 완료");
     }
 }

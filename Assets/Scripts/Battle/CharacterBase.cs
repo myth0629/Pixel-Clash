@@ -23,8 +23,17 @@ public abstract class CharacterBase : MonoBehaviour
     public int CurrentHp => currentHp;
     public int MaxHp     => maxHp;
     public int Attack    => atk; // 스킬/UI에서 현재 공격력 참조 용도
+    
+    // 애니메이션 관리
+    protected Animator animator;
+    protected int attackStep = 1; // 공격 단계 (1: Attack1, 2: Attack2)
 
     // ---------- 유니티 라이프사이클 ----------
+    protected virtual void Start()
+    {
+        InitializeAnimator();
+    }
+    
     protected virtual void Update()
     {
         if (!BattleManager.Instance.IsBattleRunning) return;
@@ -34,6 +43,129 @@ public abstract class CharacterBase : MonoBehaviour
         {
             _attackTimer = 0f;
             TryAttack();
+        }
+    }
+
+    // ---------- 애니메이션 관리 ----------
+    /// <summary>애니메이터 초기화 및 파라미터 확인</summary>
+    protected virtual void InitializeAnimator()
+    {
+        animator = GetComponent<Animator>();
+        if (animator == null)
+        {
+            animator = GetComponentInChildren<Animator>();
+        }
+        
+        if (animator == null)
+        {
+            Debug.LogWarning($"[{gameObject.name}] Animator를 찾을 수 없습니다!");
+        }
+        else
+        {
+            Debug.Log($"[{gameObject.name}] Animator 찾음: {animator.gameObject.name}");
+            LogAnimatorParameters();
+        }
+    }
+    
+    /// <summary>애니메이터 파라미터 목록 출력 (디버그용)</summary>
+    protected void LogAnimatorParameters()
+    {
+        if (animator == null) return;
+        
+        foreach (AnimatorControllerParameter param in animator.parameters)
+        {
+            Debug.Log($"[{gameObject.name}] 애니메이터 파라미터: {param.name} ({param.type})");
+        }
+    }
+    
+    /// <summary>애니메이터에 특정 파라미터가 있는지 확인</summary>
+    protected bool HasAnimatorParameter(string parameterName)
+    {
+        if (animator == null) return false;
+        
+        foreach (AnimatorControllerParameter param in animator.parameters)
+        {
+            if (param.name == parameterName)
+                return true;
+        }
+        return false;
+    }
+    
+    /// <summary>공격 애니메이션 실행 (공통 로직)</summary>
+    protected virtual void ExecuteAttackAnimation()
+    {
+        if (animator == null)
+        {
+            Debug.LogError($"[{gameObject.name}] Animator가 null입니다!");
+            return;
+        }
+
+        string attackTrigger = GetAttackTrigger();
+        
+        if (HasAnimatorParameter(attackTrigger))
+        {
+            animator.SetTrigger(attackTrigger);
+            Debug.Log($"[{gameObject.name}] 공격 애니메이션 실행: {attackTrigger}");
+        }
+        else
+        {
+            // 폴백: 기본 Attack 트리거 사용
+            string fallbackTrigger = "Attack";
+            if (HasAnimatorParameter(fallbackTrigger))
+            {
+                animator.SetTrigger(fallbackTrigger);
+                Debug.Log($"[{gameObject.name}] 폴백 공격 애니메이션: {fallbackTrigger}");
+            }
+            else
+            {
+                Debug.LogError($"[{gameObject.name}] 사용 가능한 공격 트리거가 없습니다!");
+            }
+        }
+        
+        // 공격 단계 전환 (1 ↔ 2)
+        attackStep = attackStep == 1 ? 2 : 1;
+        Debug.Log($"[{gameObject.name}] 다음 공격 단계: Attack{attackStep}");
+    }
+    
+    /// <summary>공격 트리거 이름 반환 (파생 클래스에서 오버라이드)</summary>
+    protected virtual string GetAttackTrigger()
+    {
+        return $"Attack{attackStep}"; // 기본: Attack1, Attack2
+    }
+    
+    /// <summary>공격 단계 초기화</summary>
+    protected virtual void ResetAttackStep()
+    {
+        attackStep = 1;
+        Debug.Log($"[{gameObject.name}] 공격 단계 초기화: Attack{attackStep}");
+    }
+    
+    /// <summary>걷기 애니메이션 제어 (공통 로직)</summary>
+    public virtual void SetWalkingAnimation(bool isWalking)
+    {
+        if (animator != null)
+        {
+            // 파라미터 존재 여부 확인
+            if (HasAnimatorParameter("IsWalking"))
+            {
+                animator.SetBool("IsWalking", isWalking);
+                Debug.Log($"[{gameObject.name}] 걷기 애니메이션 설정: {isWalking}");
+            }
+            else
+            {
+                Debug.LogWarning($"[{gameObject.name}] Animator에 'IsWalking' bool 파라미터가 없습니다!");
+                
+                // 대안으로 Walk 트리거 사용
+                if (isWalking && HasAnimatorParameter("Walk"))
+                {
+                    animator.SetTrigger("Walk");
+                    Debug.Log($"[{gameObject.name}] Walk 트리거로 걷기 애니메이션 실행");
+                }
+            }
+        }
+        else
+        {
+            Debug.LogError($"[{gameObject.name}] Animator가 null입니다!");
         }
     }
 
@@ -82,8 +214,23 @@ public abstract class CharacterBase : MonoBehaviour
 
     protected virtual void Die()
     {
+        // Death 애니메이션 트리거 실행
+        if (animator != null && HasAnimatorParameter("Death"))
+        {
+            animator.SetTrigger("Death");
+            Debug.Log($"[{gameObject.name}] Death 애니메이션 실행");
+        }
+        
         OnDeath?.Invoke(this);              // 매니저에 알림
-        // TODO: 사망 FX / 풀 반납
-        Destroy(gameObject);                // 풀링 쓰면 SetActive(false)로 교체
+        
+        // 파생 클래스에서 오버라이드하여 처리 방식 결정
+        HandleDeath();
+    }
+    
+    /// <summary>사망 처리 방식 (파생 클래스에서 오버라이드)</summary>
+    protected virtual void HandleDeath()
+    {
+        // 기본: 즉시 파괴
+        Destroy(gameObject);
     }
 }

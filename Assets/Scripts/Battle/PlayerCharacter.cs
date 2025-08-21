@@ -11,33 +11,14 @@ public class PlayerCharacter : CharacterBase
     [HideInInspector] public int level = 1;
     
     private Enemy enemy;  // 현재 타겟 적
-    private Animator animator;
     private bool canAttack = false;  // 공격 가능 여부
     private PositionType currentPosition = PositionType.Front; // 현재 배치 위치
-    private int attackStep = 1; // 현재 공격 단계 (1: Attack1, 2: Attack2)
 
-    private void Start()
+    protected override void Start()
     {
-        animator = GetComponent<Animator>();
-        if (animator == null)
-        {
-            animator = GetComponentInChildren<Animator>();
-        }
+        base.Start(); // CharacterBase의 InitializeAnimator 호출
         
-        if (animator == null)
-        {
-            Debug.LogWarning($"[{gameObject.name}] PlayerCharacter Animator를 찾을 수 없습니다!");
-        }
-        else
-        {
-            Debug.Log($"[{gameObject.name}] PlayerCharacter Animator 찾음: {animator.gameObject.name}");
-            
-            // 애니메이터 파라미터 목록 출력
-            foreach (AnimatorControllerParameter param in animator.parameters)
-            {
-                Debug.Log($"[{gameObject.name}] 애니메이터 파라미터: {param.name} ({param.type})");
-            }
-        }
+        // PlayerCharacter 특화 초기화가 필요하면 여기서 추가
     }
 
     /// <summary>외부(BattleManager)에서 호출: 캐릭터 SO & 레벨 세팅</summary>
@@ -114,19 +95,6 @@ public class PlayerCharacter : CharacterBase
         }
     }
 
-    /// <summary>애니메이터에 특정 파라미터가 있는지 확인</summary>
-    private bool HasAnimatorParameter(string parameterName)
-    {
-        if (animator == null) return false;
-        
-        foreach (AnimatorControllerParameter param in animator.parameters)
-        {
-            if (param.name == parameterName)
-                return true;
-        }
-        return false;
-    }
-
     /// <summary>애니메이터에 특정 상태가 있는지 확인</summary>
     private bool HasAnimatorState(string stateName)
     {
@@ -170,48 +138,12 @@ public class PlayerCharacter : CharacterBase
         
         Debug.Log($"[{gameObject.name}] 적 {enemy.name} 공격!");
         
-        // 공격 애니메이션 선택 및 실행
+        // 베이스 클래스의 공격 애니메이션 실행
         ExecuteAttackAnimation();
-        
-        // 공격 단계 전환 (1 ↔ 2)
-        attackStep = attackStep == 1 ? 2 : 1;
-        Debug.Log($"[{gameObject.name}] 다음 공격 단계: Attack{attackStep}");
-    }
-
-    /// <summary>공격 애니메이션 실행 (attackStep과 위치 고려)</summary>
-    private void ExecuteAttackAnimation()
-    {
-        if (animator == null)
-        {
-            Debug.LogError($"[{gameObject.name}] Animator가 null입니다!");
-            return;
-        }
-
-        string attackTrigger = GetAttackTrigger();
-        
-        if (HasAnimatorParameter(attackTrigger))
-        {
-            animator.SetTrigger(attackTrigger);
-            Debug.Log($"[{gameObject.name}] 공격 애니메이션 실행: {attackTrigger}");
-        }
-        else
-        {
-            // 폴백: 기본 Attack 트리거 사용
-            string fallbackTrigger = "Attack";
-            if (HasAnimatorParameter(fallbackTrigger))
-            {
-                animator.SetTrigger(fallbackTrigger);
-                Debug.Log($"[{gameObject.name}] 폴백 공격 애니메이션: {fallbackTrigger}");
-            }
-            else
-            {
-                Debug.LogError($"[{gameObject.name}] 사용 가능한 공격 트리거가 없습니다!");
-            }
-        }
     }
 
     /// <summary>현재 상황에 맞는 공격 트리거 이름 반환</summary>
-    private string GetAttackTrigger()
+    protected override string GetAttackTrigger()
     {
         // Soldier 캐릭터의 위치별 공격 (기존 시스템 유지)
         if (data != null && data.displayName == "병사")
@@ -240,58 +172,11 @@ public class PlayerCharacter : CharacterBase
         enemy = null;  // 클린업
     }
     
-    /// <summary>걷기 애니메이션 제어</summary>
-    public void SetWalkingAnimation(bool isWalking)
-    {
-        if (animator != null)
-        {
-            // 파라미터 존재 여부 확인
-            bool hasWalkingParam = false;
-            foreach (AnimatorControllerParameter param in animator.parameters)
-            {
-                if (param.name == "IsWalking" && param.type == AnimatorControllerParameterType.Bool)
-                {
-                    hasWalkingParam = true;
-                    break;
-                }
-            }
-            
-            if (hasWalkingParam)
-            {
-                animator.SetBool("IsWalking", isWalking);
-                Debug.Log($"[{gameObject.name}] 걷기 애니메이션 설정: {isWalking}");
-            }
-            else
-            {
-                Debug.LogWarning($"[{gameObject.name}] Animator에 'IsWalking' bool 파라미터가 없습니다!");
-                
-                // 대안으로 Walk 트리거 사용
-                if (isWalking)
-                {
-                    // Walk 트리거가 있는지 확인
-                    foreach (AnimatorControllerParameter param in animator.parameters)
-                    {
-                        if (param.name == "Walk" && param.type == AnimatorControllerParameterType.Trigger)
-                        {
-                            animator.SetTrigger("Walk");
-                            Debug.Log($"[{gameObject.name}] Walk 트리거 실행");
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        else
-        {
-            Debug.LogError($"[{gameObject.name}] Animator가 null입니다!");
-        }
-    }
-    
     /// <summary>BattleManager에서 호출 - 전투 시작</summary>
     public void StartCombat()
     {
         canAttack = true;
-        attackStep = 1; // 공격 단계 초기화
+        ResetAttackStep(); // 베이스 클래스 메서드 사용
         
         // 모든 하위 SkillController 활성화 (Animator에 부착된 컴포넌트 포함)
         var scList = GetComponentsInChildren<SkillController>(true);
@@ -303,12 +188,19 @@ public class PlayerCharacter : CharacterBase
     public void StartNewRound()
     {
         canAttack = false;
-        attackStep = 1; // 공격 단계 초기화
+        ResetAttackStep(); // 베이스 클래스 메서드 사용
         
-        // 체력 완전 회복
+        // 체력 완전 회복 (사망 상태에서도 부활)
         FullHeal();
         
-        Debug.Log($"[{gameObject.name}] 새로운 라운드 준비 - 체력 회복 완료, AttackStep 초기화, BattleManager 딜레이 대기 중");
+        // Death 애니메이션 상태 리셋 (Idle로 돌아가기)
+        if (animator != null && HasAnimatorParameter("Idle"))
+        {
+            animator.SetTrigger("Idle");
+            Debug.Log($"[{gameObject.name}] Death 상태에서 Idle로 복귀");
+        }
+        
+        Debug.Log($"[{gameObject.name}] 새로운 라운드 준비 - 체력 회복 완료, AttackStep 초기화, 애니메이션 리셋");
     }
     
     /// <summary>전투 중지 (라운드 완료 시 호출)</summary>
@@ -318,5 +210,18 @@ public class PlayerCharacter : CharacterBase
     var scList = GetComponentsInChildren<SkillController>(true);
     foreach (var sc in scList) sc.StopCombat();
         Debug.Log($"[{gameObject.name}] 전투 중지 - 라운드 완료");
+    }
+    
+    /// <summary>플레이어 사망 처리 - Destroy하지 않고 Death 애니메이션 상태 유지</summary>
+    protected override void HandleDeath()
+    {
+        // 플레이어는 사망 시 Destroy하지 않고 Death 애니메이션 상태를 유지
+        canAttack = false; // 공격 중지
+        
+        // 스킬 컨트롤러들도 중지
+        var scList = GetComponentsInChildren<SkillController>(true);
+        foreach (var sc in scList) sc.StopCombat();
+        
+        Debug.Log($"[{gameObject.name}] 플레이어 사망 - Death 애니메이션 상태 유지, 오브젝트 보존");
     }
 }

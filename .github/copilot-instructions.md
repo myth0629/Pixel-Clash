@@ -477,8 +477,6 @@ public class StageMonsterConfig : ScriptableObject {
 3. **표현 계층**: 이벤트 기반 UI 동기화
 4. **게임플레이**: 완전한 라운드 진행 + 경제 시스템
 
-이 가이드는 새로운 개발자나 AI 에이전트가 Pixel-Clash 프로젝트를 즉시 이해하고 작업할 수 있도록 모든 핵심 정보를 담고 있습니다.
-
 ## 🎭 위치별 애니메이션 시스템 (Soldier 특화)
 
 ### 시스템 개요
