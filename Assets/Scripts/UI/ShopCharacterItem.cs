@@ -151,7 +151,7 @@ public class ShopCharacterItem : MonoBehaviour
         // 골드 부족 체크
         if (!unlocked && GameDataManager.Instance != null)
         {
-            bool canAfford = GameDataManager.Instance.CurrentGold >= price;
+            bool canAfford = GameDataManager.Instance.Gold >= price;
             if (purchaseButton != null)
             {
                 purchaseButton.interactable = canAfford;

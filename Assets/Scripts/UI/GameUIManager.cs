@@ -1285,7 +1285,7 @@ public class GameUIManager : MonoBehaviour
         if (confirmMessageText != null)
             confirmMessageText.text = $"힐 스킬을 레벨 {level + 1}로 업그레이드하시겠습니까?\n현재 힐량: {currentAmount}";
 
-        bool canAfford = GameDataManager.Instance != null && GameDataManager.Instance.CurrentGold >= nextCost;
+        bool canAfford = GameDataManager.Instance != null && GameDataManager.Instance.Gold >= nextCost;
         if (confirmPurchaseButton != null)
         {
             confirmPurchaseButton.interactable = canAfford;
@@ -1553,7 +1553,7 @@ public class GameUIManager : MonoBehaviour
         int currentLevel = GetCharacterLevel(pendingUpgradeCharacter);
         int upgradeCost = GetUpgradeCost(pendingUpgradeCharacter, currentLevel);
 
-        if (GameDataManager.Instance != null && GameDataManager.Instance.SpendGold(upgradeCost))
+        if (GameDataManager.Instance != null && GameDataManager.Instance.SubtractGold(upgradeCost))
         {
             // 레벨업 실행
             int newLevel = currentLevel + 1;
@@ -1651,7 +1651,7 @@ public class GameUIManager : MonoBehaviour
 
         // 골드 부족 체크
         bool canAfford = GameDataManager.Instance != null && 
-                        GameDataManager.Instance.CurrentGold >= upgradeCost;
+                        GameDataManager.Instance.Gold >= upgradeCost;
         
         if (confirmPurchaseButton != null)
             confirmPurchaseButton.interactable = canAfford;
@@ -1776,7 +1776,7 @@ public class GameUIManager : MonoBehaviour
 
         // 골드 부족 체크
         bool canAfford = GameDataManager.Instance != null && 
-                        GameDataManager.Instance.CurrentGold >= character.unlockCost;
+                        GameDataManager.Instance.Gold >= character.unlockCost;
         
         if (confirmPurchaseButton != null)
             confirmPurchaseButton.interactable = canAfford;
@@ -1794,10 +1794,10 @@ public class GameUIManager : MonoBehaviour
 
         int price = pendingPurchaseCharacter.unlockCost;
         
-        if (GameDataManager.Instance != null && GameDataManager.Instance.CurrentGold >= price)
+        if (GameDataManager.Instance != null && GameDataManager.Instance.Gold >= price)
         {
             // 골드 차감
-            GameDataManager.Instance.SpendGold(price);
+            GameDataManager.Instance.SubtractGold(price);
             
             // 캐릭터 해금
             UnlockCharacter(pendingPurchaseCharacter);

@@ -125,7 +125,7 @@ public class UpgradeCharacterItem : MonoBehaviour
             {
                 int cost = gameUIManager.GetUpgradeCost(characterData, currentLevel);
                 bool canAfford = GameDataManager.Instance != null && 
-                               GameDataManager.Instance.CurrentGold >= cost;
+                               GameDataManager.Instance.Gold >= cost;
                 upgradeButton.interactable = canAfford;
             }
         }

@@ -1,179 +1,169 @@
-using UnityEngine;
-using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
 using System;
 
-/// <summary>
-/// 스테이지 전환 시 배경 스크롤링 효과를 관리
-/// </summary>
+/// <summary>배경 스크롤링 시스템 - 리팩토링 버전</summary>
 public class BackgroundScroller : MonoBehaviour
 {
-    [Header("스크롤링 설정")]
-    [SerializeField] private RectTransform[] backgroundLayers; // 배경 레이어들
-    [SerializeField] private float[] scrollSpeeds = { 30f, 50f, 80f }; // 각 레이어별 속도 (패럴랙스) - 개선된 스크롤에 맞게 조정
-    [SerializeField] private Vector2 scrollDirection = Vector2.left; // 스크롤 방향
-
-    [Header("스크롤링 동작 설정")]
-    [SerializeField] private float scrollDuration = 3f; // 스크롤링 지속 시간 (3초)
-    [SerializeField] private bool scrollOnRoundStart = false; // 라운드 시작 시 스크롤 여부 (StageManager에서 관리하므로 비활성화)
-
-    [Header("부드러운 움직임 설정")]
-    [SerializeField] private bool useSmoothMovement = false; // 개선된 스크롤에서는 비활성화 권장
-    [SerializeField] private float smoothingFactor = 8f; // 부드러움 정도 (높을수록 부드러움) - 더 부드럽게 조정
-
-    [Header("무한 스크롤 설정")]
-    [SerializeField] private bool enableInfiniteScroll = true; // 무한 스크롤 활성화
-    [SerializeField] private float cloneSpacing = 1.0f; // 복제본 간의 간격 배수 (1.0 = 빈틈없음, 1.5 = 1.5배 간격)
-    [SerializeField] private bool synchronizeLayerResets = true; // 레이어별 재배치 동기화 여부
-    [SerializeField] private float resetDelayMultiplier = 1.0f; // 재배치 지연 배수 (1.0 = 정확한 타이밍, 높을수록 늦게 사라짐)
-
-    // 스크롤 완료 이벤트
-    public static event Action OnScrollComplete;
-
-    private bool isScrolling = false;
-    private bool isStageTransition = false; // 스테이지 전환 여부
-    private Vector2[] originalPositions; // 각 레이어의 원래 위치
-    private Vector2[] targetPositions; // 각 레이어의 목표 위치 (부드러운 움직임용)
-    private Coroutine scrollCoroutine;
-    private Coroutine autoStopCoroutine; // 자동 정지 코루틴 추적
+    #region Inspector Fields
+    [Header("▶ 배경 레이어 설정")]
+    [SerializeField] private RectTransform[] backgroundLayers;
+    [SerializeField] private float[] layerSpeeds = { 50f, 75f, 100f };
     
-    // 개선된 무한 스크롤용 데이터
-    private List<RectTransform>[] layerClones; // 각 레이어별 복제된 UI 요소들
-    private float[] layerWidths; // 각 레이어의 너비
-    private int[] firstIndices; // 각 레이어의 첫 번째 인덱스
+    [Header("▶ 스크롤 설정")]
+    [SerializeField] private float scrollDuration = 3f;
+    [SerializeField] private Vector2 scrollDirection = Vector2.left;
+    [SerializeField] private bool enableInfiniteScroll = true;
+    
+    [Header("▶ 무한 스크롤 고급 설정")]
+    [SerializeField, Range(0.5f, 2f)] private float cloneSpacing = 1f;
+    [SerializeField, Range(1f, 5f)] private float resetDelayMultiplier = 1.5f;
+    #endregion
 
+    #region Events
+    public static event Action OnScrollComplete;
+    #endregion
+
+    #region Private Fields
+    // 상태
+    private bool isScrolling = false;
+    private bool isStageTransition = false;
+    
+    // 위치 관리
+    private Vector2[] originalPositions;
+    private Vector2[] targetPositions;
+    
+    // 코루틴
+    private Coroutine scrollCoroutine;
+    private Coroutine autoStopCoroutine;
+    
+    // 무한 스크롤 시스템
+    private InfiniteScrollData[] scrollData;
+    #endregion
+
+    #region Infinite Scroll Data Structure
+    [System.Serializable]
+    private class InfiniteScrollData
+    {
+        public List<RectTransform> clones = new List<RectTransform>();
+        public float width;
+        public int firstIndex = 0;
+
+        public InfiniteScrollData()
+        {
+            clones = new List<RectTransform>();
+            width = 0f;
+            firstIndex = 0;
+        }
+    }
+    #endregion
+
+    #region Unity Lifecycle
     private void Awake()
     {
-        // 원래 위치들 저장
-        if (backgroundLayers != null)
-        {
-            originalPositions = new Vector2[backgroundLayers.Length];
-            targetPositions = new Vector2[backgroundLayers.Length];
-            
-            for (int i = 0; i < backgroundLayers.Length; i++)
-            {
-                if (backgroundLayers[i] != null)
-                {
-                    originalPositions[i] = backgroundLayers[i].anchoredPosition;
-                    targetPositions[i] = backgroundLayers[i].anchoredPosition;
-                }
-            }
-            
-            // 개선된 무한 스크롤 초기화
-            InitializeAdvancedInfiniteScroll();
-        }
+        InitializePositions();
+        InitializeInfiniteScroll();
     }
 
     private void Update()
     {
-        // 라운드 전환 중이거나 스테이지 전환 중이면 스크롤 중단 체크 안함
-        if (isStageTransition)
+        HandleScrollingState();
+    }
+
+    private void OnEnable()
+    {
+        if (StageManager.Instance != null)
         {
-            return;
-        }
-        
-        // 게임이 실행 중이 아닌데 스크롤 중이면 중단 (단, 라운드 전환 상황은 예외)
-        if (isScrolling && BattleManager.Instance != null && !BattleManager.Instance.IsBattleRunning)
-        {
-            // StageManager가 있고 라운드 전환 과정이 아닌 경우에만 중단
-            if (StageManager.Instance == null)
-            {
-                Debug.Log($"[{gameObject.name}] 게임이 중단되어 스크롤을 정지합니다.");
-                StopScrolling();
-            }
-            // StageManager가 있으면 라운드 전환 과정일 수 있으므로 스크롤 유지
+            StageManager.OnRoundStart += HandleRoundStart;
+            StageManager.OnStageComplete += HandleStageComplete;
         }
     }
 
-    /// <summary>개선된 무한 스크롤 초기화</summary>
-    private void InitializeAdvancedInfiniteScroll()
+    private void OnDisable()
+    {
+        if (StageManager.Instance != null)
+        {
+            StageManager.OnRoundStart -= HandleRoundStart;
+            StageManager.OnStageComplete -= HandleStageComplete;
+        }
+    }
+    #endregion
+
+    #region Initialization
+    /// <summary>위치 초기화</summary>
+    private void InitializePositions()
     {
         if (backgroundLayers == null || backgroundLayers.Length == 0) return;
 
-        layerClones = new List<RectTransform>[backgroundLayers.Length];
-        layerWidths = new float[backgroundLayers.Length];
-        firstIndices = new int[backgroundLayers.Length];
+        originalPositions = new Vector2[backgroundLayers.Length];
+        targetPositions = new Vector2[backgroundLayers.Length];
 
         for (int i = 0; i < backgroundLayers.Length; i++)
         {
-            if (backgroundLayers[i] == null) continue;
-
-            layerClones[i] = new List<RectTransform>();
-            layerWidths[i] = backgroundLayers[i].rect.width;
-            firstIndices[i] = 1;
-
-            // 원본 추가
-            layerClones[i].Add(backgroundLayers[i]);
-
-            // 복제본 생성 (2개 추가로 총 3개)
-            for (int j = 0; j < 2; j++)
+            if (backgroundLayers[i] != null)
             {
-                var clone = Instantiate(backgroundLayers[i], backgroundLayers[i].parent);
-                clone.name = $"{backgroundLayers[i].name}_Clone_{j + 1}";
-                layerClones[i].Add(clone);
+                originalPositions[i] = backgroundLayers[i].anchoredPosition;
+                targetPositions[i] = originalPositions[i];
             }
-
-            // 초기 배치
-            SortLayerImages(i);
         }
 
-        Debug.Log($"[{gameObject.name}] 개선된 무한 스크롤 초기화 완료 - {backgroundLayers.Length}개 레이어");
+        Debug.Log($"[{gameObject.name}] 배경 위치 초기화 완료 - 레이어 수: {backgroundLayers.Length}");
     }
 
-    /// <summary>레이어 이미지 정렬</summary>
-    private void SortLayerImages(int layerIndex)
+    /// <summary>무한 스크롤 시스템 초기화</summary>
+    private void InitializeInfiniteScroll()
     {
-        if (layerClones[layerIndex] == null) return;
+        if (!enableInfiniteScroll || backgroundLayers == null || backgroundLayers.Length == 0) return;
 
-        float width = layerWidths[layerIndex];
+        InitializeAdvancedInfiniteScroll();
+    }
+    #endregion
+
+    #region Event Handlers
+    /// <summary>라운드 시작 핸들러</summary>
+    private void HandleRoundStart(int stage, int round)
+    {
+        Debug.Log($"[{gameObject.name}] 라운드 시작: {stage}-{round}");
+        StartScrolling(true);
+    }
+
+    /// <summary>스테이지 완료 핸들러</summary>
+    private void HandleStageComplete(int stage)
+    {
+        Debug.Log($"[{gameObject.name}] 스테이지 완료: {stage}");
+        isStageTransition = true;
+        StopScrollingAndReset();
+    }
+    #endregion
+
+    #region State Management
+    /// <summary>스크롤링 상태 관리</summary>
+    private void HandleScrollingState()
+    {
+        if (isStageTransition) return;
         
-        // 배치 간격 계산 - 빈틈없는 배치를 위해 정확한 너비 사용
-        float actualSpacing = width * cloneSpacing;
-        
-        // 복제본들을 순서대로 배치 (0: 원본, 1: 오른쪽 복제본, 2: 왼쪽 복제본)
-        for (int i = 0; i < layerClones[layerIndex].Count; i++)
+        if (isScrolling && ShouldStopScrolling())
         {
-            var clone = layerClones[layerIndex][i];
-            if (clone != null)
-            {
-                Vector2 newPos;
-                
-                if (i == 0)
-                {
-                    // 원본: 원래 위치
-                    newPos = originalPositions[layerIndex];
-                }
-                else if (i == 1)
-                {
-                    // 첫 번째 복제본: 원본의 오른쪽
-                    newPos = originalPositions[layerIndex] + Vector2.right * actualSpacing;
-                }
-                else
-                {
-                    // 두 번째 복제본: 원본의 왼쪽
-                    newPos = originalPositions[layerIndex] + Vector2.left * actualSpacing;
-                }
-                
-                clone.anchoredPosition = newPos;
-                
-                // 목표 위치도 동일하게 설정
-                if (i == 0) // 원본
-                {
-                    targetPositions[layerIndex] = newPos;
-                }
-            }
+            Debug.Log($"[{gameObject.name}] 게임이 중단되어 스크롤을 정지합니다.");
+            StopScrolling();
         }
-        
-        Debug.Log($"[{gameObject.name}] Layer[{layerIndex}] 배치완료: 너비={width:F0}, 간격={actualSpacing:F0}, 클론수={layerClones[layerIndex].Count}");
     }
 
-    #region ▶ 공용 메서드 ◀
-    /// <summary>배경 스크롤링 시작</summary>
-    public void StartScrolling()
+    /// <summary>스크롤링을 중단해야 하는지 확인</summary>
+    private bool ShouldStopScrolling()
     {
-        StartScrolling(false);
+        if (BattleManager.Instance == null) return false;
+        if (BattleManager.Instance.IsBattleRunning) return false;
+        
+        return StageManager.Instance == null;
     }
+    #endregion
+
+    #region Public API
+    /// <summary>배경 스크롤링 시작</summary>
+    public void StartScrolling() => StartScrolling(false);
     
     /// <summary>배경 스크롤링 시작</summary>
     /// <param name="forceStart">true면 BattleManager 상태와 무관하게 강제 시작</param>
@@ -181,45 +171,15 @@ public class BackgroundScroller : MonoBehaviour
     {
         Debug.Log($"[{gameObject.name}] StartScrolling 호출 - isScrolling: {isScrolling}, forceStart: {forceStart}");
         
-        // 게임이 실행 중이 아니면 스크롤 시작하지 않음 (강제 시작이 아닌 경우만)
-        if (!forceStart && BattleManager.Instance != null && !BattleManager.Instance.IsBattleRunning)
-        {
-            Debug.Log($"[{gameObject.name}] 게임이 실행 중이 아니므로 스크롤을 시작하지 않습니다.");
-            return;
-        }
-        
-        if (isScrolling) return;
-
-        // 배경 레이어 확인
-        if (backgroundLayers == null || backgroundLayers.Length == 0)
-        {
-            Debug.LogError($"[{gameObject.name}] backgroundLayers가 null이거나 비어있습니다!");
-            return;
-        }
+        if (!ValidateScrollingStart(forceStart) || isScrolling) return;
+        if (!ValidateBackgroundLayers()) return;
 
         isScrolling = true;
         scrollCoroutine = StartCoroutine(ScrollingCoroutine());
         
-        // 캐릭터 걷기 애니메이션 시작 (약간의 지연 후)
         StartCoroutine(DelayedSetWalkingAnimation(true));
         
         Debug.Log($"[{gameObject.name}] 배경 스크롤링 시작 - 레이어 수: {backgroundLayers.Length}, 지속시간: {scrollDuration}초");
-    }
-
-    /// <summary>지정된 시간 후 자동 정지</summary>
-    private IEnumerator AutoStopAfterDuration()
-    {
-        Debug.Log($"[{gameObject.name}] 자동 정지 타이머 시작: {scrollDuration}초");
-        yield return new WaitForSeconds(scrollDuration);
-        
-        if (isScrolling)
-        {
-            Debug.Log($"[{gameObject.name}] {scrollDuration}초 후 자동 정지 실행");
-            StopScrolling();
-        }
-        
-        // 코루틴 참조 정리
-        autoStopCoroutine = null;
     }
 
     /// <summary>배경 스크롤링 정지</summary>
@@ -229,37 +189,13 @@ public class BackgroundScroller : MonoBehaviour
         
         if (!isScrolling) return;
 
-        isScrolling = false;
+        CleanupScrolling();
+        TriggerScrollComplete();
         
-        if (scrollCoroutine != null)
-        {
-            StopCoroutine(scrollCoroutine);
-            scrollCoroutine = null;
-            Debug.Log($"[{gameObject.name}] 스크롤링 코루틴 정지");
-        }
-        
-        // 자동 정지 코루틴도 정리
-        if (autoStopCoroutine != null)
-        {
-            StopCoroutine(autoStopCoroutine);
-            autoStopCoroutine = null;
-            Debug.Log($"[{gameObject.name}] 자동 정지 코루틴 정리");
-        }
-
-        // 스크롤 완료 이벤트 발생
-        Debug.Log($"[{gameObject.name}] 스크롤 완료 이벤트 발생!");
-        OnScrollComplete?.Invoke();
-
-        // 캐릭터 걷기 애니메이션 종료
-        SetCharacterWalkingAnimation(false);
-
-        // 스테이지 전환 플래그 리셋
-        isStageTransition = false;
-
         Debug.Log($"[{gameObject.name}] 배경 스크롤링 정지");
     }
 
-    /// <summary>배경 스크롤링 정지 후 위치 리셋 (스테이지 전환용)</summary>
+    /// <summary>배경 스크롤링 정지 후 위치 리셋</summary>
     public void StopScrollingAndReset()
     {
         StopScrolling();
@@ -274,22 +210,7 @@ public class BackgroundScroller : MonoBehaviour
 
         for (int i = 0; i < backgroundLayers.Length && i < originalPositions.Length; i++)
         {
-            if (backgroundLayers[i] != null)
-            {
-                backgroundLayers[i].anchoredPosition = originalPositions[i];
-                
-                // 목표 위치도 함께 리셋
-                if (targetPositions != null && i < targetPositions.Length)
-                {
-                    targetPositions[i] = originalPositions[i];
-                }
-
-                // 개선된 무한 스크롤의 모든 복제본도 리셋
-                if (layerClones != null && i < layerClones.Length && layerClones[i] != null)
-                {
-                    SortLayerImages(i);
-                }
-            }
+            ResetLayerPosition(i);
         }
 
         Debug.Log("배경 위치 리셋 완료");
@@ -297,8 +218,10 @@ public class BackgroundScroller : MonoBehaviour
 
     /// <summary>스크롤링 상태 확인</summary>
     public bool IsScrolling => isScrolling;
-    
-    /// <summary>캐릭터들의 걷기 애니메이션 제어</summary>
+    #endregion
+
+    #region Character Animation
+    /// <summary>캐릭터 걷기 애니메이션 설정</summary>
     private void SetCharacterWalkingAnimation(bool isWalking)
     {
         if (BattleManager.Instance == null) 
@@ -310,31 +233,23 @@ public class BackgroundScroller : MonoBehaviour
         int playerCount = 0;
         int enemyCount = 0;
         
-        // 모든 플레이어 캐릭터의 걷기 애니메이션 제어
         var players = BattleManager.Instance.GetAllPlayers();
-        Debug.Log($"[{gameObject.name}] 플레이어 수: {players.Count}");
-        
         foreach (var player in players)
         {
             if (player != null && player.gameObject.activeInHierarchy)
             {
                 player.SetWalkingAnimation(isWalking);
                 playerCount++;
-                Debug.Log($"[{gameObject.name}] {player.name} 플레이어 걷기 애니메이션: {isWalking}");
             }
         }
         
-        // 모든 적 캐릭터의 걷기 애니메이션 제어
         var enemies = BattleManager.Instance.GetAllEnemies();
-        Debug.Log($"[{gameObject.name}] 적 수: {enemies.Count}");
-        
         foreach (var enemy in enemies)
         {
             if (enemy != null && enemy.gameObject.activeInHierarchy)
             {
                 enemy.SetWalkingAnimation(isWalking);
                 enemyCount++;
-                Debug.Log($"[{gameObject.name}] {enemy.name} 적 걷기 애니메이션: {isWalking}");
             }
         }
         
@@ -344,16 +259,243 @@ public class BackgroundScroller : MonoBehaviour
     /// <summary>지연된 걷기 애니메이션 설정</summary>
     private IEnumerator DelayedSetWalkingAnimation(bool isWalking)
     {
-        // 0.1초 대기 후 애니메이션 설정 (캐릭터 스폰 대기)
         yield return new WaitForSeconds(0.1f);
         SetCharacterWalkingAnimation(isWalking);
     }
     #endregion
 
-    #region ▶ 스크롤링 로직 ◀
+    #region Private Helpers
+    /// <summary>스크롤링 시작 검증</summary>
+    private bool ValidateScrollingStart(bool forceStart)
+    {
+        if (!forceStart && BattleManager.Instance != null && !BattleManager.Instance.IsBattleRunning)
+        {
+            Debug.Log($"[{gameObject.name}] 게임이 실행 중이 아니므로 스크롤을 시작하지 않습니다.");
+            return false;
+        }
+        return true;
+    }
+
+    /// <summary>배경 레이어 검증</summary>
+    private bool ValidateBackgroundLayers()
+    {
+        if (backgroundLayers == null || backgroundLayers.Length == 0)
+        {
+            Debug.LogError($"[{gameObject.name}] backgroundLayers가 null이거나 비어있습니다!");
+            return false;
+        }
+        return true;
+    }
+
+    /// <summary>스크롤링 정리</summary>
+    private void CleanupScrolling()
+    {
+        isScrolling = false;
+        
+        if (scrollCoroutine != null)
+        {
+            StopCoroutine(scrollCoroutine);
+            scrollCoroutine = null;
+            Debug.Log($"[{gameObject.name}] 스크롤링 코루틴 정지");
+        }
+        
+        if (autoStopCoroutine != null)
+        {
+            StopCoroutine(autoStopCoroutine);
+            autoStopCoroutine = null;
+            Debug.Log($"[{gameObject.name}] 자동 정지 코루틴 정리");
+        }
+    }
+
+    /// <summary>스크롤 완료 트리거</summary>
+    private void TriggerScrollComplete()
+    {
+        Debug.Log($"[{gameObject.name}] 스크롤 완료 이벤트 발생!");
+        OnScrollComplete?.Invoke();
+
+        SetCharacterWalkingAnimation(false);
+        isStageTransition = false;
+    }
+
+    /// <summary>레이어 위치 리셋</summary>
+    private void ResetLayerPosition(int layerIndex)
+    {
+        if (backgroundLayers[layerIndex] != null)
+        {
+            backgroundLayers[layerIndex].anchoredPosition = originalPositions[layerIndex];
+            
+            if (targetPositions != null && layerIndex < targetPositions.Length)
+            {
+                targetPositions[layerIndex] = originalPositions[layerIndex];
+            }
+
+            if (scrollData != null && layerIndex < scrollData.Length && scrollData[layerIndex].clones != null)
+            {
+                SortLayerImages(layerIndex);
+            }
+        }
+    }
+
+    /// <summary>지정된 시간 후 자동 정지</summary>
+    private IEnumerator AutoStopAfterDuration()
+    {
+        Debug.Log($"[{gameObject.name}] 자동 정지 타이머 시작: {scrollDuration}초");
+        yield return new WaitForSeconds(scrollDuration);
+        
+        if (isScrolling)
+        {
+            Debug.Log($"[{gameObject.name}] {scrollDuration}초 후 자동 정지 실행");
+            StopScrolling();
+        }
+        
+        autoStopCoroutine = null;
+    }
+    #endregion
+
+    #region Infinite Scroll Management
+    /// <summary>개선된 무한 스크롤 시스템 초기화</summary>
+    private void InitializeAdvancedInfiniteScroll()
+    {
+        if (backgroundLayers == null || backgroundLayers.Length == 0)
+        {
+            Debug.LogWarning("배경 레이어가 설정되지 않았습니다.");
+            return;
+        }
+
+        scrollData = new InfiniteScrollData[backgroundLayers.Length];
+
+        for (int i = 0; i < backgroundLayers.Length; i++)
+        {
+            scrollData[i] = new InfiniteScrollData();
+            InitializeScrollLayer(i);
+        }
+
+        Debug.Log($"개선된 무한 스크롤 시스템 초기화 완료 - 레이어 수: {backgroundLayers.Length}");
+    }
+
+    /// <summary>개별 스크롤 레이어 초기화</summary>
+    private void InitializeScrollLayer(int layerIndex)
+    {
+        var layer = backgroundLayers[layerIndex];
+        if (layer == null) return;
+
+        var scrollLayer = scrollData[layerIndex];
+        scrollLayer.width = CalculateLayerWidth(layer);
+        scrollLayer.clones = new List<RectTransform>();
+        scrollLayer.firstIndex = 0;
+
+        CreateInitialClones(layerIndex);
+        
+        Debug.Log($"레이어 {layerIndex} 초기화 완료 - 너비: {scrollLayer.width}, 복제본 수: {scrollLayer.clones.Count}");
+    }
+
+    /// <summary>레이어 너비 계산</summary>
+    private float CalculateLayerWidth(RectTransform layer)
+    {
+        var imageComponent = layer.GetComponent<UnityEngine.UI.Image>();
+        if (imageComponent?.sprite != null)
+        {
+            var sprite = imageComponent.sprite;
+            return sprite.bounds.size.x * layer.localScale.x;
+        }
+        
+        return layer.rect.width;
+    }
+
+    /// <summary>초기 복제본 생성</summary>
+    private void CreateInitialClones(int layerIndex)
+    {
+        var layer = backgroundLayers[layerIndex];
+        var scrollLayer = scrollData[layerIndex];
+        
+        float canvasWidth = GetCanvasWidth();
+        int clonesNeeded = Mathf.CeilToInt(canvasWidth / scrollLayer.width) + 2;
+
+        for (int i = 0; i < clonesNeeded; i++)
+        {
+            CreateClone(layerIndex, i);
+        }
+    }
+
+    /// <summary>복제본 생성</summary>
+    private RectTransform CreateClone(int layerIndex, int cloneIndex)
+    {
+        var originalLayer = backgroundLayers[layerIndex];
+        var scrollLayer = scrollData[layerIndex];
+        
+        var clone = Instantiate(originalLayer, originalLayer.parent);
+        clone.name = $"{originalLayer.name}_Clone_{cloneIndex}";
+        clone.anchoredPosition = new Vector2(scrollLayer.width * cloneIndex, originalLayer.anchoredPosition.y);
+        
+        scrollLayer.clones.Add(clone);
+        return clone;
+    }
+
+    /// <summary>캔버스 너비 획득</summary>
+    private float GetCanvasWidth()
+    {
+        var canvas = GetComponentInParent<Canvas>();
+        if (canvas?.worldCamera != null)
+        {
+            return Screen.width / canvas.scaleFactor;
+        }
+        return Screen.width;
+    }
+
+    /// <summary>레이어 이미지 정렬</summary>
+    private void SortLayerImages(int layerIndex)
+    {
+        if (scrollData == null || layerIndex >= scrollData.Length || scrollData[layerIndex].clones == null) return;
+
+        float width = scrollData[layerIndex].width;
+
+        for (int i = 0; i < scrollData[layerIndex].clones.Count; i++)
+        {
+            var clone = scrollData[layerIndex].clones[i];
+            if (clone == null) continue;
+
+            float currentX = clone.anchoredPosition.x;
+            float newX = currentX;
+
+            if (currentX <= -width)
+            {
+                float rightmostX = currentX;
+                foreach (var otherClone in scrollData[layerIndex].clones)
+                {
+                    if (otherClone != null && otherClone != clone)
+                    {
+                        rightmostX = Mathf.Max(rightmostX, otherClone.anchoredPosition.x);
+                    }
+                }
+                newX = rightmostX + width;
+            }
+            else if (currentX >= width * 2)
+            {
+                float leftmostX = currentX;
+                foreach (var otherClone in scrollData[layerIndex].clones)
+                {
+                    if (otherClone != null && otherClone != clone)
+                    {
+                        leftmostX = Mathf.Min(leftmostX, otherClone.anchoredPosition.x);
+                    }
+                }
+                newX = leftmostX - width;
+            }
+
+            if (Mathf.Abs(newX - currentX) > 0.1f)
+            {
+                clone.anchoredPosition = new Vector2(newX, clone.anchoredPosition.y);
+            }
+        }
+    }
+    #endregion
+
+    #region Scrolling Logic
     /// <summary>스크롤링 메인 코루틴</summary>
     private IEnumerator ScrollingCoroutine()
     {
+        autoStopCoroutine = StartCoroutine(AutoStopAfterDuration());
+        
         while (isScrolling)
         {
             UpdateScroll();
@@ -364,27 +506,22 @@ public class BackgroundScroller : MonoBehaviour
     /// <summary>스크롤 업데이트</summary>
     private void UpdateScroll()
     {
-        if (backgroundLayers == null || !enableInfiniteScroll) return;
+        if (backgroundLayers == null) return;
 
         for (int i = 0; i < backgroundLayers.Length; i++)
         {
             var layer = backgroundLayers[i];
-            if (layer == null) 
+            if (layer == null) continue;
+
+            float speed = i < layerSpeeds.Length ? layerSpeeds[i] : layerSpeeds[layerSpeeds.Length - 1];
+
+            if (enableInfiniteScroll)
             {
-                Debug.LogWarning($"[{gameObject.name}] backgroundLayers[{i}]가 null입니다!");
-                continue;
+                UpdateAdvancedInfiniteScroll(i, speed);
             }
-
-            // 속도 계산 (배열 범위 체크)
-            float speed = i < scrollSpeeds.Length ? scrollSpeeds[i] : scrollSpeeds[scrollSpeeds.Length - 1];
-            
-            // 개선된 무한 스크롤 업데이트
-            UpdateAdvancedInfiniteScroll(i, speed);
-
-            // 첫 번째 프레임에서 위치 변화 로그 (덜 빈번하게)
-            if (Time.frameCount % 120 == 0) // 2초마다 로그
+            else
             {
-                Debug.Log($"[{gameObject.name}] Layer[{i}] 위치: {layer.anchoredPosition} (목표: {targetPositions[i]}, 속도: {speed})");
+                UpdateSimpleScroll(layer, speed);
             }
         }
     }
@@ -392,32 +529,69 @@ public class BackgroundScroller : MonoBehaviour
     /// <summary>개선된 무한 스크롤 업데이트</summary>
     private void UpdateAdvancedInfiniteScroll(int layerIndex, float speed)
     {
-        if (layerClones[layerIndex] == null) return;
+        if (scrollData == null || layerIndex >= scrollData.Length || scrollData[layerIndex].clones == null) return;
 
         float move = Time.deltaTime * speed;
-        float width = layerWidths[layerIndex];
+        float width = scrollData[layerIndex].width;
         float actualSpacing = width * cloneSpacing;
-        
-        // 재배치 거리는 정확히 이미지 너비로 설정
         float resetDistance = actualSpacing * resetDelayMultiplier;
 
-        // 모든 복제본 이동
-        for (int i = 0; i < layerClones[layerIndex].Count; i++)
+        // 원본 레이어도 함께 스크롤
+        var originalLayer = backgroundLayers[layerIndex];
+        if (originalLayer != null)
         {
-            var clone = layerClones[layerIndex][i];
+            if (scrollDirection.x < 0)
+            {
+                originalLayer.anchoredPosition += Vector2.left * move;
+                
+                // 원본이 화면 밖으로 나가면 가장 오른쪽으로 이동
+                if (originalLayer.anchoredPosition.x <= originalPositions[layerIndex].x - resetDistance)
+                {
+                    float rightmostX = float.MinValue;
+                    foreach (var clone in scrollData[layerIndex].clones)
+                    {
+                        if (clone != null)
+                        {
+                            rightmostX = Mathf.Max(rightmostX, clone.anchoredPosition.x);
+                        }
+                    }
+                    originalLayer.anchoredPosition = new Vector2(rightmostX + actualSpacing, originalLayer.anchoredPosition.y);
+                }
+            }
+            else if (scrollDirection.x > 0)
+            {
+                originalLayer.anchoredPosition += Vector2.right * move;
+                
+                // 원본이 화면 밖으로 나가면 가장 왼쪽으로 이동
+                if (originalLayer.anchoredPosition.x >= originalPositions[layerIndex].x + resetDistance)
+                {
+                    float leftmostX = float.MaxValue;
+                    foreach (var clone in scrollData[layerIndex].clones)
+                    {
+                        if (clone != null)
+                        {
+                            leftmostX = Mathf.Min(leftmostX, clone.anchoredPosition.x);
+                        }
+                    }
+                    originalLayer.anchoredPosition = new Vector2(leftmostX - actualSpacing, originalLayer.anchoredPosition.y);
+                }
+            }
+        }
+
+        // 복제본들도 함께 스크롤
+        for (int i = 0; i < scrollData[layerIndex].clones.Count; i++)
+        {
+            var clone = scrollData[layerIndex].clones[i];
             if (clone == null) continue;
 
-            // 왼쪽으로 스크롤하는 경우 (scrollDirection.x < 0)
             if (scrollDirection.x < 0)
             {
                 clone.anchoredPosition += Vector2.left * move;
 
-                // 화면 왼쪽으로 완전히 나간 경우 오른쪽 끝으로 이동
                 if (clone.anchoredPosition.x <= originalPositions[layerIndex].x - resetDistance)
                 {
-                    // 가장 오른쪽에 있는 복제본 찾기
-                    float rightmostX = float.MinValue;
-                    foreach (var otherClone in layerClones[layerIndex])
+                    float rightmostX = originalLayer.anchoredPosition.x;
+                    foreach (var otherClone in scrollData[layerIndex].clones)
                     {
                         if (otherClone != null && otherClone != clone)
                         {
@@ -425,26 +599,17 @@ public class BackgroundScroller : MonoBehaviour
                         }
                     }
                     
-                    // 가장 오른쪽 복제본의 오른쪽에 정확히 배치
                     clone.anchoredPosition = new Vector2(rightmostX + actualSpacing, clone.anchoredPosition.y);
-                    
-                    if (Time.frameCount % 180 == 0) // 3초마다 로그
-                    {
-                        Debug.Log($"[{gameObject.name}] Layer[{layerIndex}] 왼쪽 재배치: X={clone.anchoredPosition.x:F0}, 간격={actualSpacing:F0}");
-                    }
                 }
             }
-            // 오른쪽으로 스크롤하는 경우
             else if (scrollDirection.x > 0)
             {
                 clone.anchoredPosition += Vector2.right * move;
 
-                // 화면 오른쪽으로 완전히 나간 경우 왼쪽 끝으로 이동
                 if (clone.anchoredPosition.x >= originalPositions[layerIndex].x + resetDistance)
                 {
-                    // 가장 왼쪽에 있는 복제본 찾기
-                    float leftmostX = float.MaxValue;
-                    foreach (var otherClone in layerClones[layerIndex])
+                    float leftmostX = originalLayer.anchoredPosition.x;
+                    foreach (var otherClone in scrollData[layerIndex].clones)
                     {
                         if (otherClone != null && otherClone != clone)
                         {
@@ -452,214 +617,17 @@ public class BackgroundScroller : MonoBehaviour
                         }
                     }
                     
-                    // 가장 왼쪽 복제본의 왼쪽에 정확히 배치
                     clone.anchoredPosition = new Vector2(leftmostX - actualSpacing, clone.anchoredPosition.y);
-                    
-                    if (Time.frameCount % 180 == 0) // 3초마다 로그
-                    {
-                        Debug.Log($"[{gameObject.name}] Layer[{layerIndex}] 오른쪽 재배치: X={clone.anchoredPosition.x:F0}, 간격={actualSpacing:F0}");
-                    }
                 }
             }
         }
-
-        // 원본 레이어 위치 업데이트 (다른 시스템과의 호환성)
-        if (layerClones[layerIndex].Count > 0 && layerClones[layerIndex][0] != null)
-        {
-            targetPositions[layerIndex] = layerClones[layerIndex][0].anchoredPosition;
-            backgroundLayers[layerIndex].anchoredPosition = targetPositions[layerIndex];
-        }
     }
 
-    #endregion
-
-    #region ▶ 설정 변경 ◀
-    /// <summary>스크롤 속도 설정</summary>
-    public void SetScrollSpeeds(params float[] speeds)
+    /// <summary>단순 스크롤 업데이트</summary>
+    private void UpdateSimpleScroll(RectTransform layer, float speed)
     {
-        if (speeds != null && speeds.Length > 0)
-        {
-            scrollSpeeds = speeds;
-        }
-    }
-
-    /// <summary>스크롤 방향 설정</summary>
-    public void SetScrollDirection(Vector2 direction)
-    {
-        scrollDirection = direction.normalized;
-    }
-
-    /// <summary>배경 레이어 설정</summary>
-    public void SetBackgroundLayers(params RectTransform[] layers)
-    {
-        backgroundLayers = layers;
-        
-        // 원래 위치들 다시 저장
-        if (backgroundLayers != null)
-        {
-            originalPositions = new Vector2[backgroundLayers.Length];
-            for (int i = 0; i < backgroundLayers.Length; i++)
-            {
-                if (backgroundLayers[i] != null)
-                    originalPositions[i] = backgroundLayers[i].anchoredPosition;
-            }
-        }
-    }
-    #endregion
-
-    #region ▶ 이벤트 ◀
-    private void OnEnable()
-    {
-        // StageManager 이벤트 구독 - 라운드 시작과 스테이지 전환에 반응
-        Debug.Log($"[{gameObject.name}] BackgroundScroller - StageManager 이벤트 구독");
-        StageManager.OnRoundStart += OnRoundStart;
-        StageManager.OnStageTransitionStart += OnStageTransitionStart;
-        StageManager.OnRoundTransitionStart += OnRoundTransitionStart; // 라운드 전환 이벤트 추가
-    }
-
-    private void OnDisable()
-    {
-        // 이벤트 구독 해제
-        Debug.Log($"[{gameObject.name}] BackgroundScroller - StageManager 이벤트 구독 해제");
-        StageManager.OnRoundStart -= OnRoundStart;
-        StageManager.OnStageTransitionStart -= OnStageTransitionStart;
-        StageManager.OnRoundTransitionStart -= OnRoundTransitionStart; // 라운드 전환 이벤트 해제
-    }
-
-    /// <summary>스테이지 전환 시작 시 호출</summary>
-    private void OnStageTransitionStart(int stageNumber)
-    {
-        Debug.Log($"[{gameObject.name}] 스테이지 전환 시작 - Stage {stageNumber} - 배경 스크롤링 시작");
-        
-        // 배경 레이어 확인
-        if (backgroundLayers == null || backgroundLayers.Length == 0)
-        {
-            Debug.LogWarning($"[{gameObject.name}] backgroundLayers가 설정되지 않았습니다!");
-            return;
-        }
-        
-        Debug.Log($"[{gameObject.name}] 배경 레이어 개수: {backgroundLayers.Length}");
-        
-        // 스테이지 전환 플래그 설정
-        isStageTransition = true;
-        
-        // 스테이지 전환 시에는 배경 위치 리셋 후 스크롤 시작
-        ResetPositions();
-    // 전투 진행 상태와 무관하게 강제로 스크롤 시작 (스테이지 전환 완료 신호 필요)
-    StartScrolling(true);
-        
-        // 지정된 시간 후 자동으로 정지
-        if (scrollDuration > 0)
-        {
-            // 기존 자동 정지 코루틴이 있다면 정리
-            if (autoStopCoroutine != null)
-            {
-                StopCoroutine(autoStopCoroutine);
-            }
-            autoStopCoroutine = StartCoroutine(AutoStopAfterDuration());
-        }
-    }
-
-    /// <summary>라운드 전환 시작 시 호출 (배경 리셋 없음)</summary>
-    private void OnRoundTransitionStart(int stageNumber)
-    {
-        Debug.Log($"[{gameObject.name}] 라운드 전환 시작 - Stage {stageNumber} - 배경 스크롤 없이 진행");
-        
-        // 라운드 전환 시에는 배경 스크롤 없이 진행
-        // 단순히 새로운 적만 등장하도록 처리
-        
-        // 라운드 전환 플래그 설정 (전환 중이므로 Update에서 스크롤 중단 체크 안함)
-        isStageTransition = true;
-        
-        // 라운드 전환은 즉시 완료 (별도 처리 없음)
-        Debug.Log($"[{gameObject.name}] 라운드 전환 - 배경 스크롤 없이 바로 진행");
-    }
-
-    /// <summary>라운드 시작 시 호출</summary>
-    private void OnRoundStart(int stage, int round)
-    {
-        Debug.Log($"[{gameObject.name}] Stage {stage}-{round} 시작 - 배경 스크롤링 시작 (OnRoundStart)");
-        
-        // 배경 레이어 확인
-        if (backgroundLayers == null || backgroundLayers.Length == 0)
-        {
-            Debug.LogWarning($"[{gameObject.name}] backgroundLayers가 설정되지 않았습니다!");
-            return;
-        }
-        
-        Debug.Log($"[{gameObject.name}] 배경 레이어 개수: {backgroundLayers.Length}");
-        
-        // 라운드 시작 플래그 설정 (스테이지 전환이 아님)
-        isStageTransition = false;
-        
-        StartScrolling(true); // 라운드 시작 시 강제 스크롤
-        
-        // 라운드 시작 시에도 자동 정지 (스크롤 완료 이벤트 발생)
-        if (autoStopCoroutine != null)
-        {
-            StopCoroutine(autoStopCoroutine);
-        }
-        autoStopCoroutine = StartCoroutine(StopScrollingAfterDelay(scrollDuration));
-    }
-
-    /// <summary>일정 시간 후 스크롤링 정지</summary>
-    private IEnumerator StopScrollingAfterDelay(float delay)
-    {
-        Debug.Log($"[{gameObject.name}] 지연 정지 타이머 시작: {delay}초");
-        yield return new WaitForSeconds(delay);
-        
-        Debug.Log($"[{gameObject.name}] {delay}초 후 배경 스크롤링 자동 정지");
-        StopScrolling();
-        
-        // 코루틴 참조 정리
-        autoStopCoroutine = null;
-        // 라운드 진행 중에는 배경 위치를 유지 (ResetPositions 제거)
-        // 스테이지 전환 시에만 수동으로 리셋 호출
-    }
-    #endregion
-
-    #region ▶ 디버그 ◀
-    /// <summary>테스트용 스크롤링 토글</summary>
-    [ContextMenu("Toggle Scrolling")]
-    public void ToggleScrolling()
-    {
-        if (isScrolling)
-            StopScrolling();
-        else
-            StartScrolling();
-    }
-
-    /// <summary>테스트용 위치 리셋</summary>
-    [ContextMenu("Reset Positions")]
-    public void TestResetPositions()
-    {
-        ResetPositions();
-    }
-
-    /// <summary>무한 스크롤 재초기화</summary>
-    [ContextMenu("Reinitialize Infinite Scroll")]
-    public void ReinitializeInfiniteScroll()
-    {
-        InitializeAdvancedInfiniteScroll();
-        Debug.Log($"[{gameObject.name}] 무한 스크롤 재초기화 완료");
-    }
-
-    /// <summary>복제본 간격 조정 테스트</summary>
-    [ContextMenu("Test Clone Spacing")]
-    public void TestCloneSpacing()
-    {
-        cloneSpacing = cloneSpacing == 1.5f ? 2.0f : 1.5f;
-        InitializeAdvancedInfiniteScroll();
-        Debug.Log($"[{gameObject.name}] 복제본 간격: {cloneSpacing}");
-    }
-
-    /// <summary>레이어 동기화 토글</summary>
-    [ContextMenu("Toggle Layer Synchronization")]
-    public void ToggleLayerSynchronization()
-    {
-        synchronizeLayerResets = !synchronizeLayerResets;
-        InitializeAdvancedInfiniteScroll();
-        Debug.Log($"[{gameObject.name}] 레이어 동기화: {synchronizeLayerResets}");
+        float move = Time.deltaTime * speed;
+        layer.anchoredPosition += scrollDirection * move;
     }
     #endregion
 }

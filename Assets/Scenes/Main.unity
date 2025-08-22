@@ -2677,6 +2677,8 @@ MonoBehaviour:
   healPerLevel: 10
   healUpgradeBaseCost: 100
   healUpgradeCostGrowth: 1.5
+  baseUpgradeCost: 50
+  costPerLevel: 25
 --- !u!114 &318403655
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2714,18 +2716,14 @@ MonoBehaviour:
   - {fileID: 780528706}
   - {fileID: 456156596}
   - {fileID: 1093306895}
-  scrollSpeeds:
-  - 1
+  layerSpeeds:
   - 2
-  - 4
-  scrollDirection: {x: -1, y: 0}
+  - 3
+  - 5
   scrollDuration: 2
-  scrollOnRoundStart: 1
-  useSmoothMovement: 1
-  smoothingFactor: 5
+  scrollDirection: {x: -1, y: 0}
   enableInfiniteScroll: 1
-  cloneSpacing: 4.5
-  synchronizeLayerResets: 1
+  cloneSpacing: 2
   resetDelayMultiplier: 1
 --- !u!1 &320313304
 GameObject:

@@ -76,7 +76,7 @@ public class SkillUpgradeItem : MonoBehaviour
 
         if (upgradeButton != null)
         {
-            bool canAfford = !isMax && GameDataManager.Instance.CurrentGold >= cost;
+            bool canAfford = !isMax && GameDataManager.Instance.Gold >= cost;
             upgradeButton.interactable = canAfford;
         }
     }

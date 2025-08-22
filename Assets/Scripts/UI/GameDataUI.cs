@@ -35,7 +35,7 @@ public class GameDataUI : MonoBehaviour
         // 초기 UI 업데이트
         if (GameDataManager.Instance != null)
         {
-            UpdateGoldUI(GameDataManager.Instance.CurrentGold);
+            UpdateGoldUI(GameDataManager.Instance.Gold);
             UpdateExpUI(GameDataManager.Instance.CurrentExp);
             UpdateLevelUI(GameDataManager.Instance.PlayerLevel);
         }
@@ -158,7 +158,7 @@ public class GameDataUI : MonoBehaviour
     /// <summary>골드 획득 시 호출 (외부에서 사용)</summary>
     public static void ShowGoldReward(int amount)
     {
-        var instance = FindObjectOfType<GameDataUI>();
+        var instance = FindFirstObjectByType<GameDataUI>();
         if (instance != null)
         {
             instance.ShowGoldGainEffect(amount);

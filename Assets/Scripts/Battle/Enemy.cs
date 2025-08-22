@@ -102,12 +102,12 @@ public class Enemy : CharacterBase
                 // 실제 보상 지급
                 if (GameDataManager.Instance != null)
                 {
-                    Debug.Log($"보상 지급 전 - 현재 골드: {GameDataManager.Instance.CurrentGold}, 현재 EXP: {GameDataManager.Instance.CurrentExp}");
+                    Debug.Log($"보상 지급 전 - 현재 골드: {GameDataManager.Instance.Gold}, 현재 EXP: {GameDataManager.Instance.CurrentExp}");
                     
                     GameDataManager.Instance.AddGold(gold);
                     GameDataManager.Instance.AddExp(exp);
                     
-                    Debug.Log($"보상 지급 후 - 현재 골드: {GameDataManager.Instance.CurrentGold}, 현재 EXP: {GameDataManager.Instance.CurrentExp}");
+                    Debug.Log($"보상 지급 후 - 현재 골드: {GameDataManager.Instance.Gold}, 현재 EXP: {GameDataManager.Instance.CurrentExp}");
                     
                     // UI 이펙트 표시
                     GameDataUI.ShowGoldReward(gold);
@@ -261,7 +261,7 @@ public class Enemy : CharacterBase
     /// <summary>딜레이 후 파괴</summary>
     private IEnumerator DestroyAfterDelay()
     {
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(1f);
         Destroy(gameObject);
         Debug.Log($"[{gameObject.name}] 적 오브젝트 파괴 완료");
     }

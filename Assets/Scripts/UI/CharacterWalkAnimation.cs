@@ -52,8 +52,8 @@ public class CharacterWalkAnimation : MonoBehaviour
         Debug.Log($"[{gameObject.name}] StageManager 이벤트 구독 해제");
         StageManager.OnStageTransitionStart -= OnStageTransitionStart;
         StageManager.OnStageTransitionComplete -= OnStageTransitionComplete;
-    StageManager.OnRoundStart -= OnRoundStart;
-    BackgroundScroller.OnScrollComplete -= OnBackgroundScrollComplete;
+        StageManager.OnRoundStart -= OnRoundStart;
+        BackgroundScroller.OnScrollComplete -= OnBackgroundScrollComplete;
     }
 
     #region ▶ 이벤트 핸들러 ◀
@@ -192,18 +192,6 @@ public class CharacterWalkAnimation : MonoBehaviour
         walkBobSpeed = bobSpeed;
         walkBobAmount = bobAmount;
         // 좌우 움직임 설정은 제거됨 - X 위치 고정
-    }
-    #endregion
-
-    #region ▶ 디버그 ◀
-    /// <summary>테스트용 걻기 토글</summary>
-    [ContextMenu("Toggle Walking")]
-    public void ToggleWalking()
-    {
-        if (isWalking)
-            StopWalking();
-        else
-            StartWalking();
     }
     #endregion
 }

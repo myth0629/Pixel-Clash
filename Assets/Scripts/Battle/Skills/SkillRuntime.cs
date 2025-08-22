@@ -12,7 +12,7 @@ public class SkillRuntime
     public SkillRuntime(SkillData data)
     {
         this.data = data;
-        _cooldownLeft = 0f; // 스폰 후 첫 시전은 즉시 가능하게 시작
+        //_cooldownLeft = 0f; // 스폰 후 첫 시전은 즉시 가능하게 시작
     }
 
     public void Tick(float dt)
