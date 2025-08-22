@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>ㄴ
+/// <summary>
 /// 게임 전체 UI 상태를 관리하는 매니저
 /// </summary>
 public class GameUIManager : MonoBehaviour
@@ -14,7 +14,6 @@ public class GameUIManager : MonoBehaviour
     [SerializeField] private GameObject titlePanel;
     [SerializeField] private Button startGameButton;
     [SerializeField] private Button settingsButton;
-   
 
     [Header("준비 화면")]
     [SerializeField] private GameObject preparePanel;
@@ -48,7 +47,7 @@ public class GameUIManager : MonoBehaviour
     [SerializeField] private CharacterData[] availableCharacters; // 선택 가능한 캐릭터들
 
     [Header("상점")]
-     [SerializeField] private Button shopButton;
+    [SerializeField] private Button shopButton;
     [SerializeField] private GameObject shopPanel; // 상점 패널
     [SerializeField] private Transform shopCharacterContainer; // 상점 캐릭터 리스트 컨테이너 (Scroll View의 Content)
     [SerializeField] private GameObject shopCharacterItemPrefab; // 상점 캐릭터 아이템 프리팹
@@ -142,7 +141,6 @@ public class GameUIManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            Debug.Log("GameUIManager 인스턴스 생성");
         }
         else if (Instance != this)
         {
@@ -221,6 +219,18 @@ public class GameUIManager : MonoBehaviour
 
     private void SetupButtons()
     {
+        SetupTitleButtons();
+        SetupGameButtons();
+        SetupPrepareButtons();
+        SetupPartySlotButtons();
+        SetupPopupButtons();
+        
+        // 초기 파티 설정
+        InitializeParty();
+    }
+
+    private void SetupTitleButtons()
+    {
         if (startGameButton != null)
             startGameButton.onClick.AddListener(OnStartGameClicked);
         
@@ -232,8 +242,10 @@ public class GameUIManager : MonoBehaviour
         
         if (upgradeButton != null)
             upgradeButton.onClick.AddListener(OnUpgradeClicked);
+    }
 
-        // 게임 UI(배틀) 메뉴/일시정지 관련 버튼들
+    private void SetupGameButtons()
+    {
         if (gameMenuButton != null)
             gameMenuButton.onClick.AddListener(OnGameMenuButtonClicked);
 
@@ -254,95 +266,49 @@ public class GameUIManager : MonoBehaviour
             healButton.onClick.RemoveAllListeners();
             healButton.onClick.AddListener(OnHealButtonClicked);
         }
+    }
 
-        // 스킬 해금 팝업 버튼 설정
+    private void SetupPrepareButtons()
+    {
+        if (battleStartButton != null)
+            battleStartButton.onClick.AddListener(OnBattleStartClicked);
+        
+        if (backToTitleButton != null)
+            backToTitleButton.onClick.AddListener(OnBackToTitleClicked);
+            
+        if (closeSelectionButton != null)
+            closeSelectionButton.onClick.AddListener(OnCloseSelectionClicked);
+    }
+
+    private void SetupPartySlotButtons()
+    {
+        if (partySlot1Button != null)
+            partySlot1Button.onClick.AddListener(() => OnPartySlotClicked(0));
+            
+        if (partySlot2Button != null)
+            partySlot2Button.onClick.AddListener(() => OnPartySlotClicked(1));
+    }
+
+    private void SetupPopupButtons()
+    {
         if (skillUnlockConfirmButton != null)
         {
             skillUnlockConfirmButton.onClick.RemoveAllListeners();
             skillUnlockConfirmButton.onClick.AddListener(OnSkillUnlockConfirm);
         }
-
-        if (battleStartButton != null)
-            battleStartButton.onClick.AddListener(OnBattleStartClicked);
-        
-        if (backToTitleButton != null)
-            backToTitleButton.onClick.AddListener(OnBackToTitleClicked);
-            
-        if (closeSelectionButton != null)
-            closeSelectionButton.onClick.AddListener(OnCloseSelectionClicked);
-            
-        // 파티 슬롯 버튼 설정
-        if (partySlot1Button != null)
-            partySlot1Button.onClick.AddListener(() => OnPartySlotClicked(0));
-            
-        if (partySlot2Button != null)
-            partySlot2Button.onClick.AddListener(() => OnPartySlotClicked(1));
-            
-        // 초기 파티 설정
-        InitializeParty();
     }
 
     /// <summary>준비 화면 버튼들 설정 (상점에서 돌아올 때 이벤트 복구용)</summary>
     private void SetupPrepareScreenButtons()
     {
-        // 준비 화면 관련 버튼들만 다시 설정
-        if (battleStartButton != null)
-        {
-            battleStartButton.onClick.RemoveAllListeners();
-            battleStartButton.onClick.AddListener(OnBattleStartClicked);
-        }
-        
-        if (backToTitleButton != null)
-        {
-            backToTitleButton.onClick.RemoveAllListeners();
-            backToTitleButton.onClick.AddListener(OnBackToTitleClicked);
-        }
-            
-        if (closeSelectionButton != null)
-        {
-            closeSelectionButton.onClick.RemoveAllListeners();
-            closeSelectionButton.onClick.AddListener(OnCloseSelectionClicked);
-        }
-            
-        // 파티 슬롯 버튼 설정
-        if (partySlot1Button != null)
-        {
-            partySlot1Button.onClick.RemoveAllListeners();
-            partySlot1Button.onClick.AddListener(() => OnPartySlotClicked(0));
-        }
-            
-        if (partySlot2Button != null)
-        {
-            partySlot2Button.onClick.RemoveAllListeners();
-            partySlot2Button.onClick.AddListener(() => OnPartySlotClicked(1));
-        }
-
-        Debug.Log("준비 화면 버튼들 재설정 완료");
+        SetupPrepareButtons();
+        SetupPartySlotButtons();
     }
 
     /// <summary>타이틀 화면 버튼들 설정 (상점에서 돌아올 때 이벤트 복구용)</summary>
     private void SetupTitleScreenButtons()
     {
-        // 타이틀 화면 관련 버튼들만 다시 설정
-        if (startGameButton != null)
-        {
-            startGameButton.onClick.RemoveAllListeners();
-            startGameButton.onClick.AddListener(OnStartGameClicked);
-        }
-        
-        if (settingsButton != null)
-        {
-            settingsButton.onClick.RemoveAllListeners();
-            settingsButton.onClick.AddListener(OnSettingsClicked);
-        }
-        
-        if (shopButton != null)
-        {
-            shopButton.onClick.RemoveAllListeners();
-            shopButton.onClick.AddListener(OnShopClicked);
-        }
-
-        Debug.Log("타이틀 화면 버튼들 재설정 완료");
+        SetupTitleButtons();
     }
 
     /// <summary>초기 파티 설정</summary>
@@ -404,7 +370,6 @@ public class GameUIManager : MonoBehaviour
         SetupTitleScreenButtons();
 
         isGameStarted = false;
-        Debug.Log("타이틀 화면 표시");
     }
 
     /// <summary>준비 화면 표시</summary>
@@ -460,7 +425,6 @@ public class GameUIManager : MonoBehaviour
         UpdatePrepareGoldDisplay();
 
         isGameStarted = false;
-        Debug.Log("준비 화면 표시");
     }
 
     /// <summary>준비 화면 정보 업데이트</summary>
@@ -624,7 +588,6 @@ public class GameUIManager : MonoBehaviour
         }
 
         isGameStarted = true;
-        Debug.Log("게임 UI 표시 - 전투 시작");
     }
 
     /// <summary>배틀 메뉴 버튼 클릭 → 일시정지</summary>
@@ -642,7 +605,6 @@ public class GameUIManager : MonoBehaviour
         Time.timeScale = 0f; // 전체 게임 일시정지
         if (pausePanel != null)
             pausePanel.SetActive(true);
-        Debug.Log("게임 일시정지 - 일시정지 팝업 활성화");
     }
 
     /// <summary>게임 재개</summary>
@@ -653,7 +615,6 @@ public class GameUIManager : MonoBehaviour
         Time.timeScale = 1f;
         if (pausePanel != null)
             pausePanel.SetActive(false);
-        Debug.Log("게임 재개 - 일시정지 팝업 비활성화");
     }
 
     private void OnPauseResumeClicked()
@@ -698,24 +659,12 @@ public class GameUIManager : MonoBehaviour
 
     private void OnBattleStartClicked()
     {
-        Debug.Log("전투 시작 버튼 클릭");
-        
-        // 현재 파티 상태 디버그
-        Debug.Log($"currentParty.Count: {currentParty.Count}");
-        for (int i = 0; i < currentParty.Count; i++)
-        {
-            Debug.Log($"currentParty[{i}]: {(currentParty[i]?.name ?? "null")}");
-        }
-        
         // 전방, 후방 중 최소 하나라도 캐릭터가 있는지 확인
         bool hasFrontCharacter = currentParty.Count > 0 && currentParty[0] != null;
         bool hasBackCharacter = currentParty.Count > 1 && currentParty[1] != null;
         
-        Debug.Log($"hasFrontCharacter: {hasFrontCharacter}, hasBackCharacter: {hasBackCharacter}");
-        
         if (!hasFrontCharacter && !hasBackCharacter)
         {
-            Debug.LogWarning("전방 또는 후방에 최소 한 명의 캐릭터를 배치해주세요.");
             ShowWarningMessage("전방 또는 후방에 최소 한 명의 캐릭터를 배치해주세요.");
             return;
         }
@@ -736,25 +685,12 @@ public class GameUIManager : MonoBehaviour
 
     private void OnBackToTitleClicked()
     {
-        Debug.Log("타이틀로 돌아가기 버튼 클릭");
         ShowTitleScreen();
     }
 
     private void OnSettingsClicked()
     {
-        Debug.Log("설정 버튼 클릭");
         // 설정 화면 로직 추가 예정
-    }
-
-    private void OnExitClicked()
-    {
-        Debug.Log("게임 종료 버튼 클릭");
-        
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#else
-        Application.Quit();
-#endif
     }
 
     #endregion
@@ -764,7 +700,6 @@ public class GameUIManager : MonoBehaviour
     /// <summary>파티 슬롯 클릭 이벤트</summary>
     private void OnPartySlotClicked(int slotIndex)
     {
-        Debug.Log($"파티 슬롯 {slotIndex} 클릭됨");
         selectedSlotIndex = slotIndex;
         ShowCharacterSelection();
     }
@@ -895,8 +830,6 @@ public class GameUIManager : MonoBehaviour
             currentParty[selectedSlotIndex] = selectedCharacter;
             UpdatePartyInfo(); // UI 업데이트
             HideCharacterSelection();
-            
-            Debug.Log($"슬롯 {selectedSlotIndex}에 {(selectedCharacter?.name ?? "빈 슬롯")} 배치");
         }
     }
 
@@ -981,8 +914,6 @@ public class GameUIManager : MonoBehaviour
                 currentParty.Add(null);
             }
             
-            Debug.Log("기본 파티 초기화: 빈 슬롯 2개");
-            
             // UI 업데이트
             UpdatePartyInfo();
         }
@@ -1025,8 +956,6 @@ public class GameUIManager : MonoBehaviour
     /// <summary>상점 버튼 클릭 시 호출</summary>
     private void OnShopClicked()
     {
-        Debug.Log("상점 열기");
-        
         // 현재 UI 상태 저장
         previousUIState = GetCurrentUIState();
         
@@ -1036,8 +965,6 @@ public class GameUIManager : MonoBehaviour
     /// <summary>업그레이드 버튼 클릭</summary>
     private void OnUpgradeClicked()
     {
-        Debug.Log("업그레이드 열기");
-        
         // 현재 UI 상태 저장
         previousUIState = GetCurrentUIState();
         
@@ -1085,8 +1012,6 @@ public class GameUIManager : MonoBehaviour
             SetupShopButtons();
             RefreshShopItems();
         }
-        
-        Debug.Log("상점 화면 표시 - preparePanel 유지, shopPanel 활성화");
     }
 
     /// <summary>업그레이드 화면 표시</summary>
@@ -1118,8 +1043,6 @@ public class GameUIManager : MonoBehaviour
             // 기본 탭은 캐릭터 탭으로 표시
             ShowUpgradeCharactersTab();
         }
-        
-        Debug.Log("업그레이드 화면 표시 - preparePanel 유지, upgradePanel 활성화");
     }
 
     /// <summary>준비 화면 요소들 숨기기 (상점 표시 시)</summary>
@@ -1351,8 +1274,6 @@ public class GameUIManager : MonoBehaviour
     /// <summary>상점 닫기</summary>
     private void CloseShop()
     {
-        Debug.Log("상점 닫기 버튼 클릭 - 이전 화면으로 이동");
-        
         if (shopPanel != null)
             shopPanel.SetActive(false);
         
@@ -1380,8 +1301,6 @@ public class GameUIManager : MonoBehaviour
     /// <summary>업그레이드 닫기</summary>
     private void CloseUpgrade()
     {
-        Debug.Log("업그레이드 닫기 버튼 클릭 - 이전 화면으로 이동");
-        
         if (upgradePanel != null)
             upgradePanel.SetActive(false);
         
@@ -1441,8 +1360,6 @@ public class GameUIManager : MonoBehaviour
                     item.SetupItem(character, currentLevel, this);
                 }
             }
-
-            Debug.Log($"업그레이드(캐릭터) 새로고침: {ownedCharacters.Count}개");
         }
         else // UpgradeTab.Skills
         {
@@ -1460,8 +1377,6 @@ public class GameUIManager : MonoBehaviour
                 var setup = skillComp.GetType().GetMethod("Setup");
                 setup?.Invoke(skillComp, new object[] { this });
             }
-
-            Debug.Log("업그레이드(스킬) 새로고침");
         }
     }
 
@@ -1559,8 +1474,6 @@ public class GameUIManager : MonoBehaviour
             int newLevel = currentLevel + 1;
             SetCharacterLevel(pendingUpgradeCharacter, newLevel);
             
-            Debug.Log($"{pendingUpgradeCharacter.displayName} 레벨업: {currentLevel} → {newLevel}, 비용: {upgradeCost} 골드");
-            
             // 스킬 해금 확인
             bool skillUnlocked = false;
             if (pendingUpgradeCharacter.skills != null && pendingUpgradeCharacter.skills.Count > 0)
@@ -1605,7 +1518,6 @@ public class GameUIManager : MonoBehaviour
     /// <summary>업그레이드 취소 버튼 클릭</summary>
     private void OnCancelUpgrade()
     {
-        Debug.Log("업그레이드 취소 버튼 클릭 - 팝업만 닫기");
         ClosePurchaseConfirmPopup();
         pendingUpgradeCharacter = null;
     }
@@ -1614,8 +1526,6 @@ public class GameUIManager : MonoBehaviour
     public void OnUpgradeCharacter(CharacterData character)
     {
         if (character == null) return;
-
-        Debug.Log($"캐릭터 업그레이드 요청: {character.displayName}");
 
         pendingUpgradeCharacter = character;
         
@@ -1627,8 +1537,6 @@ public class GameUIManager : MonoBehaviour
     private void ShowUpgradeConfirmPopup(CharacterData character)
     {
         if (character == null || purchaseConfirmPanel == null) return;
-
-        Debug.Log($"업그레이드 확인 팝업 표시: {character.displayName}");
 
         // 팝업 컨텍스트를 업그레이드로 설정
         currentPopupContext = PopupContext.Upgrade;
@@ -1658,8 +1566,6 @@ public class GameUIManager : MonoBehaviour
 
         // 팝업 표시
         purchaseConfirmPanel.SetActive(true);
-        
-        Debug.Log("업그레이드 확인 팝업 활성화 완료");
     }
 
     /// <summary>상점 아이템 목록 새로고침</summary>
@@ -1756,8 +1662,6 @@ public class GameUIManager : MonoBehaviour
     {
         if (character == null || purchaseConfirmPanel == null) return;
 
-        Debug.Log($"구매 확인 팝업 표시: {character.displayName}");
-
         // 팝업 컨텍스트를 상점으로 설정
         currentPopupContext = PopupContext.Shop;
 
@@ -1783,8 +1687,6 @@ public class GameUIManager : MonoBehaviour
 
         // 팝업 표시
         purchaseConfirmPanel.SetActive(true);
-        
-        Debug.Log("구매 확인 팝업 활성화 완료");
     }
 
     /// <summary>구매 확인 버튼 클릭</summary>
@@ -1805,7 +1707,6 @@ public class GameUIManager : MonoBehaviour
             // UI 새로고침
             RefreshShopItems();
             
-            Debug.Log($"캐릭터 '{pendingPurchaseCharacter.name}' 구매 완료! (가격: {price} 골드)");
         }
         else
         {
@@ -1819,7 +1720,6 @@ public class GameUIManager : MonoBehaviour
     /// <summary>구매 취소 버튼 클릭</summary>
     private void OnCancelPurchase()
     {
-        Debug.Log("구매 취소 버튼 클릭 - 팝업만 닫기");
         ClosePurchaseConfirmPopup();
         // 상점은 그대로 유지하고 팝업만 닫기
     }
@@ -1827,8 +1727,6 @@ public class GameUIManager : MonoBehaviour
     /// <summary>구매 확인 팝업 닫기</summary>
     private void ClosePurchaseConfirmPopup()
     {
-        Debug.Log("구매 확인 팝업 닫기");
-        
         if (purchaseConfirmPanel != null)
             purchaseConfirmPanel.SetActive(false);
 
@@ -1872,8 +1770,6 @@ public class GameUIManager : MonoBehaviour
     {
         if (purchaseConfirmPanel == null) return;
 
-        Debug.Log($"경고 메시지 표시: {message}");
-
         // 캐릭터 관련 UI 숨기기
         if (confirmCharacterNameText != null)
             confirmCharacterNameText.gameObject.SetActive(false);
@@ -1911,8 +1807,6 @@ public class GameUIManager : MonoBehaviour
 
         // 팝업 표시
         purchaseConfirmPanel.SetActive(true);
-        
-        Debug.Log("경고 메시지 팝업 활성화 완료");
     }
 
     /// <summary>캐릭터 해금</summary>
@@ -2160,8 +2054,6 @@ public class GameUIManager : MonoBehaviour
     {
         if (skillUnlockPanel == null) return;
 
-        Debug.Log($"스킬 해금 팝업 표시: {character?.displayName} - {skillData?.displayName}");
-
         // 다른 팝업들 닫기
         if (purchaseConfirmPanel != null)
             purchaseConfirmPanel.SetActive(false);
@@ -2202,8 +2094,6 @@ public class GameUIManager : MonoBehaviour
     private void ShowPositionUnlockPopup(CharacterData character, PositionUnlock positionUnlock)
     {
         if (skillUnlockPanel == null) return;
-
-        Debug.Log($"위치 해금 팝업 표시: {character?.displayName} - {positionUnlock.unlockedPosition}");
 
         // 다른 팝업들 닫기
         if (purchaseConfirmPanel != null)
