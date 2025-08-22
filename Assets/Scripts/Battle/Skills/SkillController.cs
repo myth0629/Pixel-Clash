@@ -162,11 +162,20 @@ public class SkillController : MonoBehaviour
             Debug.Log($"[Skill] Cast Data: mult={sr.data.powerMultiplier}, flatDmg={sr.data.flatBonusDamage}, flatHeal={sr.data.flatBonusHeal}, targets={targets.Count}");
         }
 
-        // 2) 시전 애니메이션 트리거 (실제 적용은 애니메이션 이벤트에서)
-        if (_anim != null)
+        // 2) 시전 애니메이션 트리거 (패시브 스킬이 아닌 경우만 실행)
+        if (_anim != null && sr.data.type != PixelClash.Data.SkillType.Passive)
         {
             var trig = string.IsNullOrEmpty(sr.data.animatorTrigger) ? "Skill" : sr.data.animatorTrigger;
             _anim.SetTrigger(trig);
+        }
+        
+        // 패시브 스킬인 경우 애니메이션 없이 즉시 효과 적용
+        if (sr.data.type == PixelClash.Data.SkillType.Passive)
+        {
+            // 즉시 스킬 효과 적용
+            OnSkillImpact();
+            // 패시브 스킬은 즉시 완료 처리
+            OnSkillCastEnd();
         }
 
         return true;
